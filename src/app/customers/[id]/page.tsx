@@ -21,7 +21,7 @@ const invoiceStatusTone: Record<string, "neutral" | "blue" | "green" | "amber" |
   overdue: "red",
 };
 
-export default async function ClientDetailPage({
+export default async function CustomerDetailPage({
   params,
 }: {
   params: Promise<{ id: string }>;
@@ -40,10 +40,10 @@ export default async function ClientDetailPage({
       <TopBar title={customer.name} subtitle={customer.email} />
       <main className="flex-1 space-y-6 overflow-y-auto p-6">
         <Link
-          href="/clients"
+          href="/customers"
           className="flex items-center gap-1 text-sm text-slate-500 hover:text-slate-900"
         >
-          <ArrowLeft size={15} /> Back to clients
+          <ArrowLeft size={15} /> Back to customers
         </Link>
 
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
