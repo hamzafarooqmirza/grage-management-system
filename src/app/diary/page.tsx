@@ -28,7 +28,7 @@ export default function DiaryPage() {
       />
       <main className="flex-1 space-y-4 overflow-y-auto p-6">
         <div className="flex justify-end">
-          <button className="flex items-center gap-2 rounded-lg bg-neutral-900 px-3 py-2 text-sm font-medium text-white hover:bg-neutral-800">
+          <button className="flex items-center gap-2 rounded-lg bg-accent-600 px-3 py-2 text-sm font-medium text-white shadow-sm shadow-accent-600/30 hover:bg-accent-700">
             <Plus size={15} /> New booking
           </button>
         </div>
@@ -39,18 +39,18 @@ export default function DiaryPage() {
               .sort((a, b) => a.time.localeCompare(b.time));
             return (
               <Card key={day.date} className="flex flex-col">
-                <div className="border-b border-neutral-100 px-4 py-3">
-                  <p className="text-sm font-semibold text-neutral-900">
+                <div className="border-b border-slate-100 px-4 py-3">
+                  <p className="text-sm font-semibold text-slate-900">
                     {day.label}
                   </p>
-                  <p className="text-xs text-neutral-500">
+                  <p className="text-xs text-slate-500">
                     {dayBookings.length} booking
                     {dayBookings.length === 1 ? "" : "s"}
                   </p>
                 </div>
                 <div className="flex-1 space-y-2 p-3">
                   {dayBookings.length === 0 ? (
-                    <p className="px-2 py-4 text-center text-xs text-neutral-400">
+                    <p className="px-2 py-4 text-center text-xs text-slate-400">
                       No bookings
                     </p>
                   ) : (
@@ -60,23 +60,23 @@ export default function DiaryPage() {
                       return (
                         <div
                           key={b.id}
-                          className="rounded-lg border border-neutral-100 p-2.5"
+                          className="rounded-lg border border-slate-100 p-2.5"
                         >
                           <div className="flex items-center justify-between">
-                            <span className="text-xs font-semibold text-neutral-900">
+                            <span className="text-xs font-semibold text-slate-900">
                               {b.time}
                             </span>
                             <Badge tone={typeTone[b.type]} className="capitalize">
                               {b.type}
                             </Badge>
                           </div>
-                          <p className="mt-1 text-sm font-medium text-neutral-900">
+                          <p className="mt-1 text-sm font-medium text-slate-900">
                             {customer?.name}
                           </p>
-                          <p className="text-xs text-neutral-500">
+                          <p className="text-xs text-slate-500">
                             {vehicle?.registration}
                           </p>
-                          <p className="mt-1 text-xs text-neutral-400">
+                          <p className="mt-1 text-xs text-slate-400">
                             {b.bay} · {b.technician}
                           </p>
                         </div>

@@ -91,16 +91,16 @@ export default function ReportsPage() {
               <div className="flex h-48 items-end gap-4">
                 {monthlyRevenue.map((m) => (
                   <div key={m.month} className="flex flex-1 flex-col items-center gap-2">
-                    <span className="text-xs font-medium text-neutral-500">
+                    <span className="text-xs font-medium text-slate-500">
                       {formatCurrency(m.value)}
                     </span>
                     <div
-                      className="w-full rounded-t-md bg-neutral-900"
+                      className="w-full rounded-t-md bg-gradient-to-t from-accent-600 to-accent-500"
                       style={{
                         height: `${(m.value / maxRevenue) * 140}px`,
                       }}
                     />
-                    <span className="text-xs text-neutral-400">
+                    <span className="text-xs text-slate-400">
                       {m.month}
                     </span>
                   </div>
@@ -115,14 +115,14 @@ export default function ReportsPage() {
               {jobsByStatus.map((j) => (
                 <div key={j.status}>
                   <div className="mb-1 flex items-center justify-between text-xs">
-                    <span className="capitalize text-neutral-600">
+                    <span className="capitalize text-slate-600">
                       {j.status.replace("_", " ")}
                     </span>
-                    <span className="text-neutral-400">{j.count}</span>
+                    <span className="text-slate-400">{j.count}</span>
                   </div>
-                  <div className="h-2 w-full rounded-full bg-neutral-100">
+                  <div className="h-2 w-full rounded-full bg-slate-100">
                     <div
-                      className="h-2 rounded-full bg-blue-500"
+                      className="h-2 rounded-full bg-accent-500"
                       style={{ width: `${(j.count / maxJobs) * 100}%` }}
                     />
                   </div>

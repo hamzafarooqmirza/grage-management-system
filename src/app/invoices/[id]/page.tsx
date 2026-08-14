@@ -39,31 +39,31 @@ export default async function InvoiceDetailPage({
         <div className="flex items-center justify-between">
           <Link
             href="/invoices"
-            className="flex items-center gap-1 text-sm text-neutral-500 hover:text-neutral-900"
+            className="flex items-center gap-1 text-sm text-slate-500 hover:text-slate-900"
           >
             <ArrowLeft size={15} /> Back to invoices
           </Link>
-          <button className="rounded-lg border border-neutral-200 px-3 py-2 text-sm font-medium text-neutral-700 hover:bg-neutral-50">
+          <button className="rounded-lg border border-slate-200 px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50">
             Print / download PDF
           </button>
         </div>
 
         <Card>
           <CardBody className="space-y-6">
-            <div className="flex items-start justify-between border-b border-neutral-100 pb-6">
+            <div className="flex items-start justify-between border-b border-slate-100 pb-6">
               <div>
-                <p className="text-lg font-semibold text-neutral-900">
+                <p className="text-lg font-semibold text-slate-900">
                   My Garage Ltd
                 </p>
-                <p className="text-sm text-neutral-500">
+                <p className="text-sm text-slate-500">
                   14 Workshop Way, Manchester, M1 2AB
                 </p>
-                <p className="text-sm text-neutral-500">
+                <p className="text-sm text-slate-500">
                   VAT No. GB123456789
                 </p>
               </div>
               <div className="text-right">
-                <p className="text-xl font-bold text-neutral-900">
+                <p className="text-xl font-bold text-slate-900">
                   {invoice.number}
                 </p>
                 <Badge tone={statusTone[invoice.status]} className="mt-1 capitalize">
@@ -74,29 +74,29 @@ export default async function InvoiceDetailPage({
 
             <div className="grid grid-cols-2 gap-6 text-sm">
               <div>
-                <p className="text-xs font-medium text-neutral-400 uppercase">
+                <p className="text-xs font-medium text-slate-400 uppercase">
                   Bill to
                 </p>
-                <p className="mt-1 font-medium text-neutral-900">
+                <p className="mt-1 font-medium text-slate-900">
                   {customer?.name}
                 </p>
-                <p className="text-neutral-500">{customer?.address}</p>
-                <p className="text-neutral-500">{customer?.email}</p>
+                <p className="text-slate-500">{customer?.address}</p>
+                <p className="text-slate-500">{customer?.email}</p>
               </div>
               <div>
-                <p className="text-xs font-medium text-neutral-400 uppercase">
+                <p className="text-xs font-medium text-slate-400 uppercase">
                   Vehicle
                 </p>
-                <p className="mt-1 font-medium text-neutral-900">
+                <p className="mt-1 font-medium text-slate-900">
                   {vehicle?.registration}
                 </p>
-                <p className="text-neutral-500">
+                <p className="text-slate-500">
                   {vehicle?.year} {vehicle?.make} {vehicle?.model}
                 </p>
-                <p className="mt-3 text-xs font-medium text-neutral-400 uppercase">
+                <p className="mt-3 text-xs font-medium text-slate-400 uppercase">
                   Dates
                 </p>
-                <p className="text-neutral-500">
+                <p className="text-slate-500">
                   Issued {formatDate(invoice.date)} · Due{" "}
                   {formatDate(invoice.dueDate)}
                 </p>
@@ -105,7 +105,7 @@ export default async function InvoiceDetailPage({
 
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b border-neutral-100 text-left text-xs text-neutral-500">
+                <tr className="border-b border-slate-100 text-left text-xs text-slate-500">
                   <th className="py-2 font-medium">Description</th>
                   <th className="py-2 font-medium">Qty</th>
                   <th className="py-2 font-medium">Unit price</th>
@@ -114,10 +114,10 @@ export default async function InvoiceDetailPage({
               </thead>
               <tbody>
                 {invoice.lineItems.map((li) => (
-                  <tr key={li.id} className="border-b border-neutral-50 last:border-0">
+                  <tr key={li.id} className="border-b border-slate-50 last:border-0">
                     <td className="py-3">{li.description}</td>
-                    <td className="py-3 text-neutral-500">{li.quantity}</td>
-                    <td className="py-3 text-neutral-500">
+                    <td className="py-3 text-slate-500">{li.quantity}</td>
+                    <td className="py-3 text-slate-500">
                       {formatCurrency(li.unitPrice)}
                     </td>
                     <td className="py-3 text-right font-medium">
@@ -131,16 +131,16 @@ export default async function InvoiceDetailPage({
             <div className="flex justify-end">
               <div className="w-full max-w-xs space-y-2 text-sm">
                 <div className="flex justify-between">
-                  <span className="text-neutral-500">Subtotal</span>
+                  <span className="text-slate-500">Subtotal</span>
                   <span>{formatCurrency(subtotal)}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-neutral-500">
+                  <span className="text-slate-500">
                     VAT ({Math.round(invoice.vatRate * 100)}%)
                   </span>
                   <span>{formatCurrency(vat)}</span>
                 </div>
-                <div className="flex justify-between border-t border-neutral-200 pt-2 text-base font-semibold text-neutral-900">
+                <div className="flex justify-between border-t border-slate-200 pt-2 text-base font-semibold text-slate-900">
                   <span>Total due</span>
                   <span>{formatCurrency(total)}</span>
                 </div>

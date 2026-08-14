@@ -14,14 +14,14 @@ export default function ClientsPage() {
       />
       <main className="flex-1 space-y-4 overflow-y-auto p-6">
         <div className="flex justify-end">
-          <button className="flex items-center gap-2 rounded-lg bg-neutral-900 px-3 py-2 text-sm font-medium text-white hover:bg-neutral-800">
+          <button className="flex items-center gap-2 rounded-lg bg-accent-600 px-3 py-2 text-sm font-medium text-white shadow-sm shadow-accent-600/30 hover:bg-accent-700">
             <Plus size={15} /> New customer
           </button>
         </div>
         <Card>
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-neutral-100 text-left text-xs text-neutral-500">
+              <tr className="border-b border-slate-100 text-left text-xs text-slate-500">
                 <th className="px-5 py-3 font-medium">Name</th>
                 <th className="px-5 py-3 font-medium">Contact</th>
                 <th className="px-5 py-3 font-medium">Vehicles</th>
@@ -34,24 +34,24 @@ export default function ClientsPage() {
                 return (
                   <tr
                     key={c.id}
-                    className="border-b border-neutral-50 last:border-0 hover:bg-neutral-50"
+                    className="border-b border-slate-50 last:border-0 hover:bg-slate-50"
                   >
                     <td className="px-5 py-3">
                       <Link
                         href={`/clients/${c.id}`}
-                        className="font-medium text-neutral-900 hover:underline"
+                        className="font-medium text-slate-900 hover:underline"
                       >
                         {c.name}
                       </Link>
                     </td>
-                    <td className="px-5 py-3 text-neutral-500">
+                    <td className="px-5 py-3 text-slate-500">
                       <div>{c.email}</div>
                       <div>{c.phone}</div>
                     </td>
-                    <td className="px-5 py-3 text-neutral-700">
+                    <td className="px-5 py-3 text-slate-700">
                       {vehicleCount} vehicle{vehicleCount === 1 ? "" : "s"}
                     </td>
-                    <td className="px-5 py-3 text-neutral-500">
+                    <td className="px-5 py-3 text-slate-500">
                       {formatDate(c.createdAt)}
                     </td>
                   </tr>
