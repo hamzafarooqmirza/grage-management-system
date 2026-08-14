@@ -1,9 +1,8 @@
-import Link from "next/link";
 import { TopBar } from "@/components/layout/TopBar";
 import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { bookings, getCustomer, getVehicle } from "@/lib/mock-data";
-import { Plus } from "lucide-react";
+import { BookJobButton } from "@/components/forms/BookJobModal";
 
 const days = [
   { date: "2026-08-14", label: "Fri 14 Aug" },
@@ -29,12 +28,7 @@ export default function DiaryPage() {
       />
       <main className="flex-1 space-y-4 overflow-y-auto p-6">
         <div className="flex justify-end">
-          <Link
-            href="/diary/new"
-            className="flex items-center gap-2 rounded-lg bg-accent-600 px-3 py-2 text-sm font-medium text-white shadow-sm shadow-accent-600/30 hover:bg-accent-700"
-          >
-            <Plus size={15} /> New booking
-          </Link>
+          <BookJobButton />
         </div>
         <div className="grid grid-cols-1 gap-4 md:grid-cols-3 xl:grid-cols-5">
           {days.map((day) => {

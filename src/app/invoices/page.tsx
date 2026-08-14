@@ -9,7 +9,7 @@ import {
   invoices,
 } from "@/lib/mock-data";
 import { formatCurrency, formatDate } from "@/lib/format";
-import { Plus } from "lucide-react";
+import { CreateInvoiceButton } from "@/components/forms/CreateInvoiceModal";
 
 const statusTone: Record<string, "neutral" | "blue" | "green" | "red"> = {
   draft: "neutral",
@@ -27,12 +27,7 @@ export default function InvoicesPage() {
       />
       <main className="flex-1 space-y-4 overflow-y-auto p-6">
         <div className="flex justify-end">
-          <Link
-            href="/invoices/new"
-            className="flex items-center gap-2 rounded-lg bg-accent-600 px-3 py-2 text-sm font-medium text-white shadow-sm shadow-accent-600/30 hover:bg-accent-700"
-          >
-            <Plus size={15} /> New invoice
-          </Link>
+          <CreateInvoiceButton />
         </div>
         <Card>
           <table className="w-full text-sm">
