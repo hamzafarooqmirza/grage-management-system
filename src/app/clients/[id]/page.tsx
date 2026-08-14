@@ -41,7 +41,7 @@ export default async function ClientDetailPage({
       <main className="flex-1 space-y-6 overflow-y-auto p-6">
         <Link
           href="/clients"
-          className="flex items-center gap-1 text-sm text-neutral-500 hover:text-neutral-900"
+          className="flex items-center gap-1 text-sm text-slate-500 hover:text-slate-900"
         >
           <ArrowLeft size={15} /> Back to clients
         </Link>
@@ -51,19 +51,19 @@ export default async function ClientDetailPage({
             <CardHeader title="Customer details" />
             <CardBody className="space-y-2 text-sm">
               <p>
-                <span className="text-neutral-500">Phone:</span>{" "}
+                <span className="text-slate-500">Phone:</span>{" "}
                 {customer.phone}
               </p>
               <p>
-                <span className="text-neutral-500">Email:</span>{" "}
+                <span className="text-slate-500">Email:</span>{" "}
                 {customer.email}
               </p>
               <p>
-                <span className="text-neutral-500">Address:</span>{" "}
+                <span className="text-slate-500">Address:</span>{" "}
                 {customer.address}
               </p>
               <p>
-                <span className="text-neutral-500">Customer since:</span>{" "}
+                <span className="text-slate-500">Customer since:</span>{" "}
                 {formatDate(customer.createdAt)}
               </p>
               {customer.notes ? (
@@ -82,7 +82,7 @@ export default async function ClientDetailPage({
             <CardBody className="p-0">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="border-b border-neutral-100 text-left text-xs text-neutral-500">
+                  <tr className="border-b border-slate-100 text-left text-xs text-slate-500">
                     <th className="px-5 py-2 font-medium">Registration</th>
                     <th className="px-5 py-2 font-medium">Vehicle</th>
                     <th className="px-5 py-2 font-medium">Mileage</th>
@@ -96,15 +96,15 @@ export default async function ClientDetailPage({
                     return (
                       <tr
                         key={v.id}
-                        className="border-b border-neutral-50 last:border-0"
+                        className="border-b border-slate-50 last:border-0"
                       >
-                        <td className="px-5 py-3 font-medium text-neutral-900">
+                        <td className="px-5 py-3 font-medium text-slate-900">
                           {v.registration}
                         </td>
-                        <td className="px-5 py-3 text-neutral-700">
+                        <td className="px-5 py-3 text-slate-700">
                           {v.year} {v.make} {v.model} · {v.colour}
                         </td>
-                        <td className="px-5 py-3 text-neutral-500">
+                        <td className="px-5 py-3 text-slate-500">
                           {v.mileage.toLocaleString()} mi
                         </td>
                         <td className="px-5 py-3">
@@ -112,7 +112,7 @@ export default async function ClientDetailPage({
                             {formatDate(v.motDue)}
                           </Badge>
                         </td>
-                        <td className="px-5 py-3 text-neutral-500">
+                        <td className="px-5 py-3 text-slate-500">
                           {v.lastServiceDate
                             ? formatDate(v.lastServiceDate)
                             : "—"}
@@ -134,18 +134,18 @@ export default async function ClientDetailPage({
             />
             <CardBody className="space-y-3">
               {jobs.length === 0 ? (
-                <p className="text-sm text-neutral-400">No job history yet.</p>
+                <p className="text-sm text-slate-400">No job history yet.</p>
               ) : (
                 jobs.map((job) => (
                   <div
                     key={job.id}
-                    className="flex items-center justify-between rounded-lg border border-neutral-100 px-3 py-2"
+                    className="flex items-center justify-between rounded-lg border border-slate-100 px-3 py-2"
                   >
                     <div>
-                      <p className="text-sm font-medium text-neutral-900">
+                      <p className="text-sm font-medium text-slate-900">
                         {job.description}
                       </p>
-                      <p className="text-xs text-neutral-500">
+                      <p className="text-xs text-slate-500">
                         {formatDate(job.createdAt)} · {job.technician}
                       </p>
                     </div>
@@ -165,7 +165,7 @@ export default async function ClientDetailPage({
             />
             <CardBody className="space-y-3">
               {custInvoices.length === 0 ? (
-                <p className="text-sm text-neutral-400">No invoices yet.</p>
+                <p className="text-sm text-slate-400">No invoices yet.</p>
               ) : (
                 custInvoices.map((inv) => {
                   const { total } = invoiceTotals(inv);
@@ -173,18 +173,18 @@ export default async function ClientDetailPage({
                     <Link
                       key={inv.id}
                       href={`/invoices/${inv.id}`}
-                      className="flex items-center justify-between rounded-lg border border-neutral-100 px-3 py-2 hover:bg-neutral-50"
+                      className="flex items-center justify-between rounded-lg border border-slate-100 px-3 py-2 hover:bg-slate-50"
                     >
                       <div>
-                        <p className="text-sm font-medium text-neutral-900">
+                        <p className="text-sm font-medium text-slate-900">
                           {inv.number}
                         </p>
-                        <p className="text-xs text-neutral-500">
+                        <p className="text-xs text-slate-500">
                           {formatDate(inv.date)}
                         </p>
                       </div>
                       <div className="text-right">
-                        <p className="text-sm font-medium text-neutral-900">
+                        <p className="text-sm font-medium text-slate-900">
                           {formatCurrency(total)}
                         </p>
                         <Badge tone={invoiceStatusTone[inv.status]} className="capitalize">

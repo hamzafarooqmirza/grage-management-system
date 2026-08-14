@@ -16,14 +16,14 @@ export default function InventoryPage() {
       />
       <main className="flex-1 space-y-4 overflow-y-auto p-6">
         <div className="flex justify-end">
-          <button className="flex items-center gap-2 rounded-lg bg-neutral-900 px-3 py-2 text-sm font-medium text-white hover:bg-neutral-800">
+          <button className="flex items-center gap-2 rounded-lg bg-accent-600 px-3 py-2 text-sm font-medium text-white shadow-sm shadow-accent-600/30 hover:bg-accent-700">
             <Plus size={15} /> New part
           </button>
         </div>
         <Card>
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-neutral-100 text-left text-xs text-neutral-500">
+              <tr className="border-b border-slate-100 text-left text-xs text-slate-500">
                 <th className="px-5 py-3 font-medium">Part</th>
                 <th className="px-5 py-3 font-medium">SKU</th>
                 <th className="px-5 py-3 font-medium">Supplier</th>
@@ -38,14 +38,14 @@ export default function InventoryPage() {
                 return (
                   <tr
                     key={p.id}
-                    className="border-b border-neutral-50 last:border-0"
+                    className="border-b border-slate-50 last:border-0"
                   >
                     <td className="px-5 py-3">
-                      <p className="font-medium text-neutral-900">{p.name}</p>
-                      <p className="text-xs text-neutral-500">{p.category}</p>
+                      <p className="font-medium text-slate-900">{p.name}</p>
+                      <p className="text-xs text-slate-500">{p.category}</p>
                     </td>
-                    <td className="px-5 py-3 text-neutral-500">{p.sku}</td>
-                    <td className="px-5 py-3 text-neutral-500">
+                    <td className="px-5 py-3 text-slate-500">{p.sku}</td>
+                    <td className="px-5 py-3 text-slate-500">
                       {p.supplier}
                     </td>
                     <td className="px-5 py-3">
@@ -53,17 +53,17 @@ export default function InventoryPage() {
                         className={
                           isLow
                             ? "font-semibold text-red-600"
-                            : "text-neutral-700"
+                            : "text-slate-700"
                         }
                       >
                         {p.stockLevel}
                       </span>
-                      <span className="text-neutral-400">
+                      <span className="text-slate-400">
                         {" "}
                         / reorder at {p.reorderLevel}
                       </span>
                     </td>
-                    <td className="px-5 py-3 text-neutral-500">
+                    <td className="px-5 py-3 text-slate-500">
                       {formatCurrency(p.costPrice)} /{" "}
                       {formatCurrency(p.sellPrice)}
                     </td>

@@ -28,10 +28,10 @@ export default function JobsPage() {
             return (
               <div key={col.status} className="w-72 shrink-0">
                 <div className="mb-3 flex items-center justify-between px-1">
-                  <p className="text-sm font-semibold text-neutral-900">
+                  <p className="text-sm font-semibold text-slate-900">
                     {col.label}
                   </p>
-                  <span className="text-xs text-neutral-400">
+                  <span className="text-xs text-slate-400">
                     {jobs.length}
                   </span>
                 </div>
@@ -43,22 +43,22 @@ export default function JobsPage() {
                     return (
                       <Link key={job.id} href={`/jobs/${job.id}`}>
                         <Card className="p-3 transition-shadow hover:shadow-md">
-                          <p className="text-sm font-medium text-neutral-900">
+                          <p className="text-sm font-medium text-slate-900">
                             {vehicle?.registration}
                           </p>
-                          <p className="mt-0.5 text-xs text-neutral-500">
+                          <p className="mt-0.5 text-xs text-slate-500">
                             {customer?.name}
                           </p>
-                          <p className="mt-2 text-xs text-neutral-600">
+                          <p className="mt-2 text-xs text-slate-600">
                             {job.description}
                           </p>
                           <div className="mt-3 flex items-center justify-between">
                             <Badge tone="neutral">{job.technician}</Badge>
-                            <span className="text-xs font-semibold text-neutral-900">
+                            <span className="text-xs font-semibold text-slate-900">
                               {formatCurrency(total)}
                             </span>
                           </div>
-                          <p className="mt-2 text-[11px] text-neutral-400">
+                          <p className="mt-2 text-[11px] text-slate-400">
                             Due {formatDate(job.dueDate)}
                           </p>
                         </Card>
@@ -66,7 +66,7 @@ export default function JobsPage() {
                     );
                   })}
                   {jobs.length === 0 ? (
-                    <p className="rounded-lg border border-dashed border-neutral-200 px-3 py-6 text-center text-xs text-neutral-400">
+                    <p className="rounded-lg border border-dashed border-slate-200 px-3 py-6 text-center text-xs text-slate-400">
                       No jobs
                     </p>
                   ) : null}

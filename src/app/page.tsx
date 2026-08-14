@@ -97,7 +97,7 @@ export default function DashboardPage() {
               action={
                 <Link
                   href="/diary"
-                  className="text-xs font-medium text-neutral-500 hover:text-neutral-900"
+                  className="text-xs font-medium text-slate-500 hover:text-slate-900"
                 >
                   View diary →
                 </Link>
@@ -106,7 +106,7 @@ export default function DashboardPage() {
             <CardBody className="p-0">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="border-b border-neutral-100 text-left text-xs text-neutral-500">
+                  <tr className="border-b border-slate-100 text-left text-xs text-slate-500">
                     <th className="px-5 py-2 font-medium">Time</th>
                     <th className="px-5 py-2 font-medium">Customer</th>
                     <th className="px-5 py-2 font-medium">Vehicle</th>
@@ -121,15 +121,15 @@ export default function DashboardPage() {
                     return (
                       <tr
                         key={b.id}
-                        className="border-b border-neutral-50 last:border-0"
+                        className="border-b border-slate-50 last:border-0"
                       >
-                        <td className="px-5 py-3 font-medium text-neutral-900">
+                        <td className="px-5 py-3 font-medium text-slate-900">
                           {b.time}
                         </td>
-                        <td className="px-5 py-3 text-neutral-700">
+                        <td className="px-5 py-3 text-slate-700">
                           {customer?.name}
                         </td>
-                        <td className="px-5 py-3 text-neutral-500">
+                        <td className="px-5 py-3 text-slate-500">
                           {vehicle?.registration} · {vehicle?.make}{" "}
                           {vehicle?.model}
                         </td>
@@ -138,7 +138,7 @@ export default function DashboardPage() {
                             {b.type}
                           </Badge>
                         </td>
-                        <td className="px-5 py-3 text-neutral-500">
+                        <td className="px-5 py-3 text-slate-500">
                           {b.bay}
                         </td>
                       </tr>
@@ -148,7 +148,7 @@ export default function DashboardPage() {
                     <tr>
                       <td
                         colSpan={5}
-                        className="px-5 py-6 text-center text-sm text-neutral-400"
+                        className="px-5 py-6 text-center text-sm text-slate-400"
                       >
                         No bookings scheduled for today.
                       </td>
@@ -163,7 +163,7 @@ export default function DashboardPage() {
             <CardHeader title="MOTs due soon" subtitle="Next 14 days" />
             <CardBody className="space-y-3">
               {upcomingMots.length === 0 ? (
-                <p className="text-sm text-neutral-400">
+                <p className="text-sm text-slate-400">
                   No MOTs due in the next two weeks.
                 </p>
               ) : (
@@ -173,13 +173,13 @@ export default function DashboardPage() {
                   return (
                     <div
                       key={v.id}
-                      className="flex items-center justify-between rounded-lg border border-neutral-100 px-3 py-2"
+                      className="flex items-center justify-between rounded-lg border border-slate-100 px-3 py-2"
                     >
                       <div>
-                        <p className="text-sm font-medium text-neutral-900">
+                        <p className="text-sm font-medium text-slate-900">
                           {v.registration}
                         </p>
-                        <p className="text-xs text-neutral-500">
+                        <p className="text-xs text-slate-500">
                           {customer?.name}
                         </p>
                       </div>
@@ -202,7 +202,7 @@ export default function DashboardPage() {
               action={
                 <Link
                   href="/jobs"
-                  className="text-xs font-medium text-neutral-500 hover:text-neutral-900"
+                  className="text-xs font-medium text-slate-500 hover:text-slate-900"
                 >
                   View jobs →
                 </Link>
@@ -214,13 +214,13 @@ export default function DashboardPage() {
                 return (
                   <div
                     key={job.id}
-                    className="flex items-center justify-between rounded-lg border border-neutral-100 px-3 py-2"
+                    className="flex items-center justify-between rounded-lg border border-slate-100 px-3 py-2"
                   >
                     <div>
-                      <p className="text-sm font-medium text-neutral-900">
+                      <p className="text-sm font-medium text-slate-900">
                         {vehicle?.registration} — {job.description}
                       </p>
-                      <p className="text-xs text-neutral-500">
+                      <p className="text-xs text-slate-500">
                         {job.technician}
                       </p>
                     </div>
@@ -240,7 +240,7 @@ export default function DashboardPage() {
               action={
                 <Link
                   href="/inventory"
-                  className="text-xs font-medium text-neutral-500 hover:text-neutral-900"
+                  className="text-xs font-medium text-slate-500 hover:text-slate-900"
                 >
                   View inventory →
                 </Link>
@@ -248,20 +248,20 @@ export default function DashboardPage() {
             />
             <CardBody className="space-y-3">
               {lowStockParts.length === 0 ? (
-                <p className="text-sm text-neutral-400">
+                <p className="text-sm text-slate-400">
                   All parts are above reorder level.
                 </p>
               ) : (
                 lowStockParts.map((p) => (
                   <div
                     key={p.id}
-                    className="flex items-center justify-between rounded-lg border border-neutral-100 px-3 py-2"
+                    className="flex items-center justify-between rounded-lg border border-slate-100 px-3 py-2"
                   >
                     <div>
-                      <p className="text-sm font-medium text-neutral-900">
+                      <p className="text-sm font-medium text-slate-900">
                         {p.name}
                       </p>
-                      <p className="text-xs text-neutral-500">
+                      <p className="text-xs text-slate-500">
                         {p.sku} · {p.supplier}
                       </p>
                     </div>
