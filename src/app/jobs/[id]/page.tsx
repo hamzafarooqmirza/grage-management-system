@@ -31,7 +31,7 @@ export default async function JobDetailPage({
         title={`Job ${job.id.toUpperCase()}`}
         subtitle={job.description}
       />
-      <main className="flex-1 space-y-6 overflow-y-auto p-6">
+      <main className="flex-1 space-y-6 overflow-y-auto p-4 sm:p-6">
         <Link
           href="/jobs"
           className="flex items-center gap-1 text-sm text-slate-500 hover:text-slate-900"
@@ -118,6 +118,7 @@ export default async function JobDetailPage({
         <Card>
           <CardHeader title="Labour lines" />
           <CardBody className="p-0">
+            <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-slate-100 text-left text-xs text-slate-500">
@@ -146,6 +147,7 @@ export default async function JobDetailPage({
                 ))}
               </tbody>
             </table>
+            </div>
           </CardBody>
         </Card>
 
@@ -157,6 +159,7 @@ export default async function JobDetailPage({
                 No parts allocated to this job.
               </p>
             ) : (
+              <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b border-slate-100 text-left text-xs text-slate-500">
@@ -185,6 +188,7 @@ export default async function JobDetailPage({
                   ))}
                 </tbody>
               </table>
+              </div>
             )}
           </CardBody>
         </Card>

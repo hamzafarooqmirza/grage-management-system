@@ -122,7 +122,7 @@ export function BookJobButton() {
             </div>
           </FieldGroup>
 
-          <div className="flex justify-end gap-3 border-t border-slate-100 pt-5">
+          <div className="sticky bottom-0 -mx-6 -mb-6 flex justify-end gap-3 border-t border-slate-100 bg-white px-6 py-4">
             <button
               type="button"
               onClick={() => setOpen(false)}

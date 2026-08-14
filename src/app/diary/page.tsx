@@ -26,7 +26,7 @@ export default function DiaryPage() {
         title="Diary"
         subtitle="Weekly booking calendar across bays and technicians"
       />
-      <main className="flex-1 space-y-4 overflow-y-auto p-6">
+      <main className="flex-1 space-y-4 overflow-y-auto p-4 sm:p-6">
         <div className="flex justify-end">
           <BookJobButton />
         </div>

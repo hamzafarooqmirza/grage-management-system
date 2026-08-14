@@ -1,0 +1,26 @@
+import {
+  LayoutDashboard,
+  Users,
+  CalendarDays,
+  Wrench,
+  Receipt,
+  Boxes,
+  BarChart3,
+  type LucideIcon,
+} from "lucide-react";
+
+export interface NavItem {
+  href: string;
+  label: string;
+  icon: LucideIcon;
+}
+
+export const navItems: NavItem[] = [
+  { href: "/", label: "Dashboard", icon: LayoutDashboard },
+  { href: "/customers", label: "Customers", icon: Users },
+  { href: "/diary", label: "Diary", icon: CalendarDays },
+  { href: "/jobs", label: "Job Cards", icon: Wrench },
+  { href: "/invoices", label: "Invoices", icon: Receipt },
+  { href: "/inventory", label: "Inventory", icon: Boxes },
+  { href: "/reports", label: "Reports", icon: BarChart3 },
+];

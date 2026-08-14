@@ -60,7 +60,7 @@ export default function DashboardPage() {
         title="Dashboard"
         subtitle="Overview of today's workshop activity"
       />
-      <main className="flex-1 space-y-6 overflow-y-auto p-6">
+      <main className="flex-1 space-y-6 overflow-y-auto p-4 sm:p-6">
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <StatCard
             label="Today's bookings"
@@ -104,6 +104,7 @@ export default function DashboardPage() {
               }
             />
             <CardBody className="p-0">
+              <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b border-slate-100 text-left text-xs text-slate-500">
@@ -156,6 +157,7 @@ export default function DashboardPage() {
                   ) : null}
                 </tbody>
               </table>
+              </div>
             </CardBody>
           </Card>
 
