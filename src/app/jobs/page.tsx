@@ -21,7 +21,7 @@ export default function JobsPage() {
         title="Job Cards"
         subtitle="Track every job from booking through to invoice"
       />
-      <main className="flex-1 overflow-x-auto p-6">
+      <main className="flex-1 overflow-x-auto p-4 sm:p-6">
         <div className="flex min-w-max gap-4">
           {columns.map((col) => {
             const jobs = jobCards.filter((j) => j.status === col.status);

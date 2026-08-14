@@ -35,8 +35,8 @@ export default async function InvoiceDetailPage({
   return (
     <>
       <TopBar title={invoice.number} subtitle="Invoice detail" />
-      <main className="flex-1 space-y-4 overflow-y-auto p-6">
-        <div className="flex items-center justify-between">
+      <main className="flex-1 space-y-4 overflow-y-auto p-4 sm:p-6">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <Link
             href="/invoices"
             className="flex items-center gap-1 text-sm text-slate-500 hover:text-slate-900"
@@ -50,7 +50,7 @@ export default async function InvoiceDetailPage({
 
         <Card>
           <CardBody className="space-y-6">
-            <div className="flex items-start justify-between border-b border-slate-100 pb-6">
+            <div className="flex flex-col gap-4 border-b border-slate-100 pb-6 sm:flex-row sm:items-start sm:justify-between">
               <div>
                 <p className="text-lg font-semibold text-slate-900">
                   My Garage Ltd
@@ -62,7 +62,7 @@ export default async function InvoiceDetailPage({
                   VAT No. GB123456789
                 </p>
               </div>
-              <div className="text-right">
+              <div className="sm:text-right">
                 <p className="text-xl font-bold text-slate-900">
                   {invoice.number}
                 </p>
@@ -72,7 +72,7 @@ export default async function InvoiceDetailPage({
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-6 text-sm">
+            <div className="grid grid-cols-1 gap-6 text-sm sm:grid-cols-2">
               <div>
                 <p className="text-xs font-medium text-slate-400 uppercase">
                   Bill to
@@ -103,6 +103,7 @@ export default async function InvoiceDetailPage({
               </div>
             </div>
 
+            <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-slate-100 text-left text-xs text-slate-500">
@@ -127,6 +128,7 @@ export default async function InvoiceDetailPage({
                 ))}
               </tbody>
             </table>
+            </div>
 
             <div className="flex justify-end">
               <div className="w-full max-w-xs space-y-2 text-sm">

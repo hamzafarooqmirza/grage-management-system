@@ -14,13 +14,14 @@ export default function InventoryPage() {
         title="Parts & Inventory"
         subtitle={`${parts.length} parts tracked · ${lowStockCount} need reordering`}
       />
-      <main className="flex-1 space-y-4 overflow-y-auto p-6">
+      <main className="flex-1 space-y-4 overflow-y-auto p-4 sm:p-6">
         <div className="flex justify-end">
           <button className="flex items-center gap-2 rounded-lg bg-accent-600 px-3 py-2 text-sm font-medium text-white shadow-sm shadow-accent-600/30 hover:bg-accent-700">
             <Plus size={15} /> New part
           </button>
         </div>
         <Card>
+          <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-slate-100 text-left text-xs text-slate-500">
@@ -79,6 +80,7 @@ export default function InventoryPage() {
               })}
             </tbody>
           </table>
+          </div>
         </Card>
       </main>
     </>

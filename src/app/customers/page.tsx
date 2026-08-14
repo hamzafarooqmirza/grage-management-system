@@ -12,11 +12,12 @@ export default function CustomersPage() {
         title="Customers"
         subtitle={`${customers.length} customers on record`}
       />
-      <main className="flex-1 space-y-4 overflow-y-auto p-6">
+      <main className="flex-1 space-y-4 overflow-y-auto p-4 sm:p-6">
         <div className="flex justify-end">
           <AddCustomerButton />
         </div>
         <Card>
+          <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-slate-100 text-left text-xs text-slate-500">
@@ -57,6 +58,7 @@ export default function CustomersPage() {
               })}
             </tbody>
           </table>
+          </div>
         </Card>
       </main>
     </>
