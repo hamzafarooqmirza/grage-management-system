@@ -45,7 +45,7 @@ export default async function JobDetailPage({
             <CardBody className="space-y-2 text-sm">
               <p>
                 <Link
-                  href={`/clients/${customer?.id}`}
+                  href={`/customers/${customer?.id}`}
                   className="font-medium text-slate-900 hover:underline"
                 >
                   {customer?.name}
