@@ -3,7 +3,7 @@ import { TopBar } from "@/components/layout/TopBar";
 import { Card } from "@/components/ui/Card";
 import { customers, getVehiclesForCustomer } from "@/lib/mock-data";
 import { formatDate } from "@/lib/format";
-import { Plus } from "lucide-react";
+import { AddCustomerButton } from "@/components/forms/AddCustomerModal";
 
 export default function CustomersPage() {
   return (
@@ -14,12 +14,7 @@ export default function CustomersPage() {
       />
       <main className="flex-1 space-y-4 overflow-y-auto p-6">
         <div className="flex justify-end">
-          <Link
-            href="/customers/new"
-            className="flex items-center gap-2 rounded-lg bg-accent-600 px-3 py-2 text-sm font-medium text-white shadow-sm shadow-accent-600/30 hover:bg-accent-700"
-          >
-            <Plus size={15} /> New customer
-          </Link>
+          <AddCustomerButton />
         </div>
         <Card>
           <table className="w-full text-sm">
