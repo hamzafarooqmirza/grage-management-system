@@ -2,6 +2,7 @@
 
 import { Search, Bell, Menu } from "lucide-react";
 import { useNavDrawer } from "./NavDrawerContext";
+import { UserMenu } from "./UserMenu";
 
 export function TopBar({ title, subtitle }: { title: string; subtitle?: string }) {
   const { open } = useNavDrawer();
@@ -34,9 +35,7 @@ export function TopBar({ title, subtitle }: { title: string; subtitle?: string }
         <button className="rounded-lg border border-slate-200 p-2 text-slate-500 hover:border-accent-500/40 hover:bg-accent-50 hover:text-accent-600">
           <Bell size={16} />
         </button>
-        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-brand-900 text-xs font-semibold text-white">
-          GA
-        </div>
+        <UserMenu />
       </div>
     </header>
   );

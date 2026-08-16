@@ -4,13 +4,13 @@ import { TopBar } from "@/components/layout/TopBar";
 import { Card, CardBody, CardHeader } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import {
-  getCustomer,
-  getVehiclesForCustomer,
   getBookingsForCustomer,
-  getJobsForCustomer,
+  getCustomer,
   getInvoicesForCustomer,
-  invoiceTotals,
-} from "@/lib/mock-data";
+  getJobsForCustomer,
+  getVehiclesForCustomer,
+} from "@/lib/supabase/queries";
+import { invoiceTotals } from "@/lib/totals";
 import { formatCurrency, formatDate, daysUntil } from "@/lib/format";
 import { ArrowLeft } from "lucide-react";
 
@@ -27,13 +27,15 @@ export default async function CustomerDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const customer = getCustomer(id);
+  const customer = await getCustomer(id);
   if (!customer) notFound();
 
-  const vehicles = getVehiclesForCustomer(customer.id);
-  const bookings = getBookingsForCustomer(customer.id);
-  const jobs = getJobsForCustomer(customer.id);
-  const custInvoices = getInvoicesForCustomer(customer.id);
+  const [vehicles, bookings, jobs, custInvoices] = await Promise.all([
+    getVehiclesForCustomer(customer.id),
+    getBookingsForCustomer(customer.id),
+    getJobsForCustomer(customer.id),
+    getInvoicesForCustomer(customer.id),
+  ]);
 
   return (
     <>
@@ -60,7 +62,7 @@ export default async function CustomerDetailPage({
               </p>
               <p>
                 <span className="text-slate-500">Address:</span>{" "}
-                {customer.address}
+                {customer.address}, {customer.city} {customer.postCode}
               </p>
               <p>
                 <span className="text-slate-500">Customer since:</span>{" "}
@@ -93,7 +95,7 @@ export default async function CustomerDetailPage({
                 </thead>
                 <tbody>
                   {vehicles.map((v) => {
-                    const days = daysUntil(v.motDue);
+                    const days = v.motDue ? daysUntil(v.motDue) : null;
                     return (
                       <tr
                         key={v.id}
@@ -103,15 +105,20 @@ export default async function CustomerDetailPage({
                           {v.registration}
                         </td>
                         <td className="px-5 py-3 text-slate-700">
-                          {v.year} {v.make} {v.model} · {v.colour}
+                          {[v.year, v.make, v.model].filter(Boolean).join(" ")}
+                          {v.colour ? ` · ${v.colour}` : ""}
                         </td>
                         <td className="px-5 py-3 text-slate-500">
-                          {v.mileage.toLocaleString()} mi
+                          {v.mileage != null ? `${v.mileage.toLocaleString()} mi` : "—"}
                         </td>
                         <td className="px-5 py-3">
-                          <Badge tone={days <= 14 ? "amber" : "neutral"}>
-                            {formatDate(v.motDue)}
-                          </Badge>
+                          {v.motDue ? (
+                            <Badge tone={days !== null && days <= 14 ? "amber" : "neutral"}>
+                              {formatDate(v.motDue)}
+                            </Badge>
+                          ) : (
+                            <span className="text-slate-400">—</span>
+                          )}
                         </td>
                         <td className="px-5 py-3 text-slate-500">
                           {v.lastServiceDate
@@ -121,6 +128,13 @@ export default async function CustomerDetailPage({
                       </tr>
                     );
                   })}
+                  {vehicles.length === 0 ? (
+                    <tr>
+                      <td colSpan={5} className="px-5 py-6 text-center text-sm text-slate-400">
+                        No vehicles on record.
+                      </td>
+                    </tr>
+                  ) : null}
                 </tbody>
               </table>
               </div>
@@ -145,10 +159,10 @@ export default async function CustomerDetailPage({
                   >
                     <div>
                       <p className="text-sm font-medium text-slate-900">
-                        {job.description}
+                        {job.description ?? "Untitled job"}
                       </p>
                       <p className="text-xs text-slate-500">
-                        {formatDate(job.createdAt)} · {job.technician}
+                        {formatDate(job.createdAt)} · {job.technician ?? "Unassigned"}
                       </p>
                     </div>
                     <Badge className="capitalize">

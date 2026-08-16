@@ -3,12 +3,8 @@ import { notFound } from "next/navigation";
 import { TopBar } from "@/components/layout/TopBar";
 import { Card, CardBody } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
-import {
-  getCustomer,
-  getInvoice,
-  getVehicle,
-  invoiceTotals,
-} from "@/lib/mock-data";
+import { getCustomer, getInvoice, getVehicle } from "@/lib/supabase/queries";
+import { invoiceTotals } from "@/lib/totals";
 import { formatCurrency, formatDate } from "@/lib/format";
 import { ArrowLeft } from "lucide-react";
 
@@ -25,11 +21,13 @@ export default async function InvoiceDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const invoice = getInvoice(id);
+  const invoice = await getInvoice(id);
   if (!invoice) notFound();
 
-  const customer = getCustomer(invoice.customerId);
-  const vehicle = getVehicle(invoice.vehicleId);
+  const [customer, vehicle] = await Promise.all([
+    getCustomer(invoice.customerId),
+    invoice.vehicleId ? getVehicle(invoice.vehicleId) : Promise.resolve(undefined),
+  ]);
   const { subtotal, vat, total } = invoiceTotals(invoice);
 
   return (
@@ -80,7 +78,9 @@ export default async function InvoiceDetailPage({
                 <p className="mt-1 font-medium text-slate-900">
                   {customer?.name}
                 </p>
-                <p className="text-slate-500">{customer?.address}</p>
+                <p className="text-slate-500">
+                  {customer ? `${customer.address}, ${customer.city} ${customer.postCode}` : null}
+                </p>
                 <p className="text-slate-500">{customer?.email}</p>
               </div>
               <div>
@@ -88,10 +88,12 @@ export default async function InvoiceDetailPage({
                   Vehicle
                 </p>
                 <p className="mt-1 font-medium text-slate-900">
-                  {vehicle?.registration}
+                  {vehicle?.registration ?? "—"}
                 </p>
                 <p className="text-slate-500">
-                  {vehicle?.year} {vehicle?.make} {vehicle?.model}
+                  {vehicle
+                    ? [vehicle.year, vehicle.make, vehicle.model].filter(Boolean).join(" ")
+                    : null}
                 </p>
                 <p className="mt-3 text-xs font-medium text-slate-400 uppercase">
                   Dates
@@ -138,7 +140,7 @@ export default async function InvoiceDetailPage({
                 </div>
                 <div className="flex justify-between">
                   <span className="text-slate-500">
-                    VAT ({Math.round(invoice.vatRate * 100)}%)
+                    VAT ({Math.round(invoice.vatRate)}%)
                   </span>
                   <span>{formatCurrency(vat)}</span>
                 </div>

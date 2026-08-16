@@ -12,31 +12,39 @@ import {
 } from "lucide-react";
 import { Modal } from "@/components/ui/Modal";
 import { FieldGroup, Select, TextArea, TextInput } from "@/components/ui/Field";
-import { customers } from "@/lib/mock-data";
+import { addBooking } from "@/lib/supabase/mutations";
+import { JOB_TYPES, JOB_TYPE_LABELS } from "@/lib/job-types";
+import type { Customer, JobType } from "@/lib/types";
 
-const JOB_TYPES = [
-  "Vehicle Recovery",
-  "Diagnostic",
-  "Oil Service",
-  "Full Service",
-  "MOT",
-  "Tyre Replacement",
-  "Vehicle Storage",
-  "Mobile Tyre Fitting",
-  "Battery Replacement",
-  "Other",
-];
-
-export function BookJobButton() {
+export function BookJobButton({ customers }: { customers: Customer[] }) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setSubmitting(true);
-    setOpen(false);
+    setError(null);
+
+    const formData = new FormData(e.currentTarget);
+    const estPriceRaw = formData.get("estPrice");
+    const result = await addBooking({
+      customerId: String(formData.get("customer") ?? ""),
+      jobType: String(formData.get("jobType") ?? "") as JobType,
+      date: String(formData.get("date") ?? ""),
+      estPrice: estPriceRaw ? Number(estPriceRaw) : undefined,
+      notes: String(formData.get("notes") ?? ""),
+    });
+
     setSubmitting(false);
+
+    if (result.error) {
+      setError(result.error);
+      return;
+    }
+
+    setOpen(false);
     router.refresh();
   }
 
@@ -85,7 +93,7 @@ export function BookJobButton() {
               </option>
               {JOB_TYPES.map((type) => (
                 <option key={type} value={type}>
-                  {type}
+                  {JOB_TYPE_LABELS[type]}
                 </option>
               ))}
             </Select>
@@ -121,6 +129,12 @@ export function BookJobButton() {
               />
             </div>
           </FieldGroup>
+
+          {error ? (
+            <p className="rounded-lg bg-rose-50 px-3 py-2 text-sm text-rose-700">
+              {error}
+            </p>
+          ) : null}
 
           <div className="sticky bottom-0 -mx-6 -mb-6 flex justify-end gap-3 border-t border-slate-100 bg-white px-6 py-4">
             <button

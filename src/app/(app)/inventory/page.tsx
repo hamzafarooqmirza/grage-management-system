@@ -1,11 +1,12 @@
 import { TopBar } from "@/components/layout/TopBar";
 import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
-import { parts } from "@/lib/mock-data";
+import { getParts } from "@/lib/supabase/queries";
 import { formatCurrency } from "@/lib/format";
 import { Plus } from "lucide-react";
 
-export default function InventoryPage() {
+export default async function InventoryPage() {
+  const parts = await getParts();
   const lowStockCount = parts.filter((p) => p.stockLevel <= p.reorderLevel).length;
 
   return (
@@ -78,6 +79,13 @@ export default function InventoryPage() {
                   </tr>
                 );
               })}
+              {parts.length === 0 ? (
+                <tr>
+                  <td colSpan={6} className="px-5 py-6 text-center text-sm text-slate-400">
+                    No parts tracked yet.
+                  </td>
+                </tr>
+              ) : null}
             </tbody>
           </table>
           </div>

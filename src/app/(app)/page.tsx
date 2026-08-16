@@ -3,19 +3,18 @@ import { StatCard } from "@/components/ui/StatCard";
 import { Card, CardBody, CardHeader } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import {
-  bookings,
-  getCustomer,
-  getVehicle,
-  invoiceTotals,
-  invoices,
-  jobCards,
-  parts,
-} from "@/lib/mock-data";
+  getBookings,
+  getCustomers,
+  getInvoices,
+  getJobCards,
+  getParts,
+  getVehicles,
+} from "@/lib/supabase/queries";
+import { invoiceTotals } from "@/lib/totals";
 import { formatCurrency, formatDate, daysUntil } from "@/lib/format";
+import { JOB_TYPE_LABELS, JOB_TYPE_TONE } from "@/lib/job-types";
 import { CalendarClock, Users, Wrench, Boxes } from "lucide-react";
 import Link from "next/link";
-
-const TODAY = "2026-08-14";
 
 const statusTone: Record<string, "neutral" | "blue" | "green" | "amber" | "red" | "purple"> = {
   booked: "blue",
@@ -25,10 +24,29 @@ const statusTone: Record<string, "neutral" | "blue" | "green" | "amber" | "red" 
   invoiced: "neutral",
 };
 
-export default function DashboardPage() {
+function today(): string {
+  return new Date().toISOString().slice(0, 10);
+}
+
+export default async function DashboardPage() {
+  const [customers, vehicles, bookings, jobCards, invoices, parts] =
+    await Promise.all([
+      getCustomers(),
+      getVehicles(),
+      getBookings(),
+      getJobCards(),
+      getInvoices(),
+      getParts(),
+    ]);
+
+  const customerById = new Map(customers.map((c) => [c.id, c]));
+  const vehicleById = new Map(vehicles.map((v) => [v.id, v]));
+
+  const TODAY = today();
+
   const todaysBookings = bookings
     .filter((b) => b.date === TODAY)
-    .sort((a, b) => a.time.localeCompare(b.time));
+    .sort((a, b) => (a.time ?? "").localeCompare(b.time ?? ""));
 
   const openJobs = jobCards.filter(
     (j) => j.status !== "invoiced" && j.status !== "completed"
@@ -44,15 +62,11 @@ export default function DashboardPage() {
 
   const lowStockParts = parts.filter((p) => p.stockLevel <= p.reorderLevel);
 
-  const upcomingMots = [...bookings]
-    .map((b) => ({ booking: b, vehicle: getVehicle(b.vehicleId) }))
-    .filter((x) => x.vehicle)
-    .map((x) => x.vehicle!)
-    .filter(
-      (v, idx, arr) => arr.findIndex((y) => y.id === v.id) === idx
-    )
-    .filter((v) => daysUntil(v.motDue) <= 14 && daysUntil(v.motDue) >= 0)
-    .sort((a, b) => daysUntil(a.motDue) - daysUntil(b.motDue));
+  const upcomingMots = vehicles
+    .filter((v) => v.motDue)
+    .filter((v, idx, arr) => arr.findIndex((y) => y.id === v.id) === idx)
+    .filter((v) => daysUntil(v.motDue!) <= 14 && daysUntil(v.motDue!) >= 0)
+    .sort((a, b) => daysUntil(a.motDue!) - daysUntil(b.motDue!));
 
   return (
     <>
@@ -117,30 +131,33 @@ export default function DashboardPage() {
                 </thead>
                 <tbody>
                   {todaysBookings.map((b) => {
-                    const customer = getCustomer(b.customerId);
-                    const vehicle = getVehicle(b.vehicleId);
+                    const customer = customerById.get(b.customerId);
+                    const vehicle = b.vehicleId
+                      ? vehicleById.get(b.vehicleId)
+                      : undefined;
                     return (
                       <tr
                         key={b.id}
                         className="border-b border-slate-50 last:border-0"
                       >
                         <td className="px-5 py-3 font-medium text-slate-900">
-                          {b.time}
+                          {b.time ?? "—"}
                         </td>
                         <td className="px-5 py-3 text-slate-700">
                           {customer?.name}
                         </td>
                         <td className="px-5 py-3 text-slate-500">
-                          {vehicle?.registration} · {vehicle?.make}{" "}
-                          {vehicle?.model}
+                          {vehicle
+                            ? `${vehicle.registration} · ${vehicle.make ?? ""} ${vehicle.model ?? ""}`
+                            : "—"}
                         </td>
                         <td className="px-5 py-3">
-                          <Badge tone="blue" className="capitalize">
-                            {b.type}
+                          <Badge tone={JOB_TYPE_TONE[b.jobType]}>
+                            {JOB_TYPE_LABELS[b.jobType]}
                           </Badge>
                         </td>
                         <td className="px-5 py-3 text-slate-500">
-                          {b.bay}
+                          {b.bay ?? "—"}
                         </td>
                       </tr>
                     );
@@ -170,8 +187,8 @@ export default function DashboardPage() {
                 </p>
               ) : (
                 upcomingMots.map((v) => {
-                  const customer = getCustomer(v.customerId);
-                  const days = daysUntil(v.motDue);
+                  const customer = customerById.get(v.customerId);
+                  const days = daysUntil(v.motDue!);
                   return (
                     <div
                       key={v.id}
@@ -211,27 +228,33 @@ export default function DashboardPage() {
               }
             />
             <CardBody className="space-y-3">
-              {openJobs.map((job) => {
-                const vehicle = getVehicle(job.vehicleId);
-                return (
-                  <div
-                    key={job.id}
-                    className="flex items-center justify-between rounded-lg border border-slate-100 px-3 py-2"
-                  >
-                    <div>
-                      <p className="text-sm font-medium text-slate-900">
-                        {vehicle?.registration} — {job.description}
-                      </p>
-                      <p className="text-xs text-slate-500">
-                        {job.technician}
-                      </p>
+              {openJobs.length === 0 ? (
+                <p className="text-sm text-slate-400">No open jobs.</p>
+              ) : (
+                openJobs.map((job) => {
+                  const vehicle = job.vehicleId
+                    ? vehicleById.get(job.vehicleId)
+                    : undefined;
+                  return (
+                    <div
+                      key={job.id}
+                      className="flex items-center justify-between rounded-lg border border-slate-100 px-3 py-2"
+                    >
+                      <div>
+                        <p className="text-sm font-medium text-slate-900">
+                          {vehicle?.registration ?? "No vehicle"} — {job.description}
+                        </p>
+                        <p className="text-xs text-slate-500">
+                          {job.technician ?? "Unassigned"}
+                        </p>
+                      </div>
+                      <Badge tone={statusTone[job.status]} className="capitalize">
+                        {job.status.replace("_", " ")}
+                      </Badge>
                     </div>
-                    <Badge tone={statusTone[job.status]} className="capitalize">
-                      {job.status.replace("_", " ")}
-                    </Badge>
-                  </div>
-                );
-              })}
+                  );
+                })
+              )}
             </CardBody>
           </Card>
 
