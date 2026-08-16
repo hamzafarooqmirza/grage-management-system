@@ -14,8 +14,9 @@ import {
 } from "lucide-react";
 import { Modal } from "@/components/ui/Modal";
 import { FieldGroup, Select, TextArea, TextInput } from "@/components/ui/Field";
-import { customers, getVehiclesForCustomer } from "@/lib/mock-data";
+import { addInvoice } from "@/lib/supabase/mutations";
 import { formatCurrency } from "@/lib/format";
+import type { Customer, Vehicle } from "@/lib/types";
 
 interface DraftLineItem {
   id: string;
@@ -30,17 +31,24 @@ function newLineItem(): DraftLineItem {
   return { id: `draft_${lineItemSeq}`, description: "", quantity: 1, unitPrice: 0 };
 }
 
-export function CreateInvoiceButton() {
+export function CreateInvoiceButton({
+  customers,
+  vehicles,
+}: {
+  customers: Customer[];
+  vehicles: Vehicle[];
+}) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [customerId, setCustomerId] = useState("");
   const [vatRate, setVatRate] = useState(20);
   const [lineItems, setLineItems] = useState<DraftLineItem[]>([newLineItem()]);
   const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const vehicles = useMemo(
-    () => (customerId ? getVehiclesForCustomer(customerId) : []),
-    [customerId]
+  const customerVehicles = useMemo(
+    () => (customerId ? vehicles.filter((v) => v.customerId === customerId) : []),
+    [customerId, vehicles]
   );
 
   const subtotal = lineItems.reduce((sum, li) => sum + li.quantity * li.unitPrice, 0);
@@ -65,11 +73,34 @@ export function CreateInvoiceButton() {
     setLineItems([newLineItem()]);
   }
 
-  function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setSubmitting(true);
-    setOpen(false);
+    setError(null);
+
+    const formData = new FormData(e.currentTarget);
+    const result = await addInvoice({
+      customerId,
+      vehicleId: String(formData.get("vehicle") ?? ""),
+      invoiceDate: String(formData.get("invoiceDate") ?? ""),
+      dueDate: String(formData.get("dueDate") ?? ""),
+      vatRate,
+      notes: String(formData.get("notes") ?? ""),
+      lineItems: lineItems.map(({ description, quantity, unitPrice }) => ({
+        description,
+        quantity,
+        unitPrice,
+      })),
+    });
+
     setSubmitting(false);
+
+    if (result.error) {
+      setError(result.error);
+      return;
+    }
+
+    setOpen(false);
     reset();
     router.refresh();
   }
@@ -126,9 +157,9 @@ export function CreateInvoiceButton() {
                 <option value="" disabled>
                   {customerId ? "Select a vehicle" : "Select a customer first"}
                 </option>
-                {vehicles.map((v) => (
+                {customerVehicles.map((v) => (
                   <option key={v.id} value={v.id}>
-                    {v.registration} · {v.make} {v.model}
+                    {v.registration} · {v.make ?? ""} {v.model ?? ""}
                   </option>
                 ))}
               </Select>
@@ -253,6 +284,12 @@ export function CreateInvoiceButton() {
               />
             </div>
           </FieldGroup>
+
+          {error ? (
+            <p className="rounded-lg bg-rose-50 px-3 py-2 text-sm text-rose-700">
+              {error}
+            </p>
+          ) : null}
 
           <div className="sticky bottom-0 -mx-6 -mb-6 flex justify-end gap-3 border-t border-slate-100 bg-white px-6 py-4">
             <button

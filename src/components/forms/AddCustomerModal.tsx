@@ -15,17 +15,38 @@ import {
 } from "lucide-react";
 import { Modal } from "@/components/ui/Modal";
 import { FieldGroup, FieldSection, TextInput } from "@/components/ui/Field";
+import { addCustomer } from "@/lib/supabase/mutations";
 
 export function AddCustomerButton() {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setSubmitting(true);
-    setOpen(false);
+    setError(null);
+
+    const formData = new FormData(e.currentTarget);
+    const result = await addCustomer({
+      fullName: String(formData.get("fullName") ?? ""),
+      email: String(formData.get("email") ?? ""),
+      phone: String(formData.get("phone") ?? ""),
+      addressLine: String(formData.get("addressLine") ?? ""),
+      city: String(formData.get("city") ?? ""),
+      postCode: String(formData.get("postCode") ?? ""),
+      vehicleRegistration: String(formData.get("vehicleRegistration") ?? ""),
+    });
+
     setSubmitting(false);
+
+    if (result.error) {
+      setError(result.error);
+      return;
+    }
+
+    setOpen(false);
     router.refresh();
   }
 
@@ -134,6 +155,12 @@ export function AddCustomerButton() {
               />
             </FieldGroup>
           </FieldSection>
+
+          {error ? (
+            <p className="rounded-lg bg-rose-50 px-3 py-2 text-sm text-rose-700">
+              {error}
+            </p>
+          ) : null}
 
           <div className="sticky bottom-0 -mx-6 -mb-6 flex justify-end gap-3 border-t border-slate-100 bg-white px-6 py-4">
             <button

@@ -2,7 +2,8 @@ import Link from "next/link";
 import { TopBar } from "@/components/layout/TopBar";
 import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
-import { getCustomer, getVehicle, jobCards, jobLineTotal } from "@/lib/mock-data";
+import { getCustomers, getJobCards, getVehicles } from "@/lib/supabase/queries";
+import { jobLineTotal } from "@/lib/totals";
 import { formatCurrency, formatDate } from "@/lib/format";
 import type { JobStatus } from "@/lib/types";
 
@@ -14,7 +15,16 @@ const columns: { status: JobStatus; label: string }[] = [
   { status: "invoiced", label: "Invoiced" },
 ];
 
-export default function JobsPage() {
+export default async function JobsPage() {
+  const [jobCards, customers, vehicles] = await Promise.all([
+    getJobCards(),
+    getCustomers(),
+    getVehicles(),
+  ]);
+
+  const customerById = new Map(customers.map((c) => [c.id, c]));
+  const vehicleById = new Map(vehicles.map((v) => [v.id, v]));
+
   return (
     <>
       <TopBar
@@ -37,29 +47,31 @@ export default function JobsPage() {
                 </div>
                 <div className="space-y-3">
                   {jobs.map((job) => {
-                    const customer = getCustomer(job.customerId);
-                    const vehicle = getVehicle(job.vehicleId);
+                    const customer = customerById.get(job.customerId);
+                    const vehicle = job.vehicleId
+                      ? vehicleById.get(job.vehicleId)
+                      : undefined;
                     const { total } = jobLineTotal(job);
                     return (
                       <Link key={job.id} href={`/jobs/${job.id}`}>
                         <Card className="p-3 transition-shadow hover:shadow-md">
                           <p className="text-sm font-medium text-slate-900">
-                            {vehicle?.registration}
+                            {vehicle?.registration ?? "No vehicle"}
                           </p>
                           <p className="mt-0.5 text-xs text-slate-500">
                             {customer?.name}
                           </p>
                           <p className="mt-2 text-xs text-slate-600">
-                            {job.description}
+                            {job.description ?? "—"}
                           </p>
                           <div className="mt-3 flex items-center justify-between">
-                            <Badge tone="neutral">{job.technician}</Badge>
+                            <Badge tone="neutral">{job.technician ?? "Unassigned"}</Badge>
                             <span className="text-xs font-semibold text-slate-900">
                               {formatCurrency(total)}
                             </span>
                           </div>
                           <p className="mt-2 text-[11px] text-slate-400">
-                            Due {formatDate(job.dueDate)}
+                            {job.dueDate ? `Due ${formatDate(job.dueDate)}` : "No due date"}
                           </p>
                         </Card>
                       </Link>

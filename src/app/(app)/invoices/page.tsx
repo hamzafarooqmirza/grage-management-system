@@ -2,12 +2,8 @@ import Link from "next/link";
 import { TopBar } from "@/components/layout/TopBar";
 import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
-import {
-  getCustomer,
-  getVehicle,
-  invoiceTotals,
-  invoices,
-} from "@/lib/mock-data";
+import { getCustomers, getInvoices, getVehicles } from "@/lib/supabase/queries";
+import { invoiceTotals } from "@/lib/totals";
 import { formatCurrency, formatDate } from "@/lib/format";
 import { CreateInvoiceButton } from "@/components/forms/CreateInvoiceModal";
 
@@ -18,7 +14,16 @@ const statusTone: Record<string, "neutral" | "blue" | "green" | "red"> = {
   overdue: "red",
 };
 
-export default function InvoicesPage() {
+export default async function InvoicesPage() {
+  const [invoices, customers, vehicles] = await Promise.all([
+    getInvoices(),
+    getCustomers(),
+    getVehicles(),
+  ]);
+
+  const customerById = new Map(customers.map((c) => [c.id, c]));
+  const vehicleById = new Map(vehicles.map((v) => [v.id, v]));
+
   return (
     <>
       <TopBar
@@ -27,7 +32,7 @@ export default function InvoicesPage() {
       />
       <main className="flex-1 space-y-4 overflow-y-auto p-4 sm:p-6">
         <div className="flex justify-end">
-          <CreateInvoiceButton />
+          <CreateInvoiceButton customers={customers} vehicles={vehicles} />
         </div>
         <Card>
           <div className="overflow-x-auto">
@@ -45,8 +50,10 @@ export default function InvoicesPage() {
             </thead>
             <tbody>
               {invoices.map((inv) => {
-                const customer = getCustomer(inv.customerId);
-                const vehicle = getVehicle(inv.vehicleId);
+                const customer = customerById.get(inv.customerId);
+                const vehicle = inv.vehicleId
+                  ? vehicleById.get(inv.vehicleId)
+                  : undefined;
                 const { total } = invoiceTotals(inv);
                 return (
                   <tr
@@ -65,7 +72,7 @@ export default function InvoicesPage() {
                       {customer?.name}
                     </td>
                     <td className="px-5 py-3 text-slate-500">
-                      {vehicle?.registration}
+                      {vehicle?.registration ?? "—"}
                     </td>
                     <td className="px-5 py-3 text-slate-500">
                       {formatDate(inv.date)}
@@ -84,6 +91,13 @@ export default function InvoicesPage() {
                   </tr>
                 );
               })}
+              {invoices.length === 0 ? (
+                <tr>
+                  <td colSpan={7} className="px-5 py-6 text-center text-sm text-slate-400">
+                    No invoices yet. Click &ldquo;New invoice&rdquo; to create one.
+                  </td>
+                </tr>
+              ) : null}
             </tbody>
           </table>
           </div>

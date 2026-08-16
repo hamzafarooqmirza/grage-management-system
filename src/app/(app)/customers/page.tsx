@@ -1,11 +1,24 @@
 import Link from "next/link";
 import { TopBar } from "@/components/layout/TopBar";
 import { Card } from "@/components/ui/Card";
-import { customers, getVehiclesForCustomer } from "@/lib/mock-data";
+import { getCustomers, getVehicles } from "@/lib/supabase/queries";
 import { formatDate } from "@/lib/format";
 import { AddCustomerButton } from "@/components/forms/AddCustomerModal";
 
-export default function CustomersPage() {
+export default async function CustomersPage() {
+  const [customers, vehicles] = await Promise.all([
+    getCustomers(),
+    getVehicles(),
+  ]);
+
+  const vehicleCountByCustomer = new Map<string, number>();
+  for (const v of vehicles) {
+    vehicleCountByCustomer.set(
+      v.customerId,
+      (vehicleCountByCustomer.get(v.customerId) ?? 0) + 1
+    );
+  }
+
   return (
     <>
       <TopBar
@@ -29,7 +42,7 @@ export default function CustomersPage() {
             </thead>
             <tbody>
               {customers.map((c) => {
-                const vehicleCount = getVehiclesForCustomer(c.id).length;
+                const vehicleCount = vehicleCountByCustomer.get(c.id) ?? 0;
                 return (
                   <tr
                     key={c.id}
@@ -56,6 +69,13 @@ export default function CustomersPage() {
                   </tr>
                 );
               })}
+              {customers.length === 0 ? (
+                <tr>
+                  <td colSpan={4} className="px-5 py-6 text-center text-sm text-slate-400">
+                    No customers yet. Click &ldquo;New customer&rdquo; to add one.
+                  </td>
+                </tr>
+              ) : null}
             </tbody>
           </table>
           </div>

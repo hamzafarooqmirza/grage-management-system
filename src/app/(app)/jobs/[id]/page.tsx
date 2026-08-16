@@ -3,12 +3,8 @@ import { notFound } from "next/navigation";
 import { TopBar } from "@/components/layout/TopBar";
 import { Card, CardBody, CardHeader } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
-import {
-  getCustomer,
-  getJob,
-  getVehicle,
-  jobLineTotal,
-} from "@/lib/mock-data";
+import { getCustomer, getJob, getVehicle } from "@/lib/supabase/queries";
+import { jobLineTotal } from "@/lib/totals";
 import { formatCurrency, formatDate } from "@/lib/format";
 import { ArrowLeft } from "lucide-react";
 
@@ -18,18 +14,20 @@ export default async function JobDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const job = getJob(id);
+  const job = await getJob(id);
   if (!job) notFound();
 
-  const customer = getCustomer(job.customerId);
-  const vehicle = getVehicle(job.vehicleId);
+  const [customer, vehicle] = await Promise.all([
+    getCustomer(job.customerId),
+    job.vehicleId ? getVehicle(job.vehicleId) : Promise.resolve(undefined),
+  ]);
   const { labour, partsTotal, total } = jobLineTotal(job);
 
   return (
     <>
       <TopBar
-        title={`Job ${job.id.toUpperCase()}`}
-        subtitle={job.description}
+        title={vehicle ? `Job — ${vehicle.registration}` : "Job"}
+        subtitle={job.description ?? undefined}
       />
       <main className="flex-1 space-y-6 overflow-y-auto p-4 sm:p-6">
         <Link
@@ -54,10 +52,12 @@ export default async function JobDetailPage({
               <p className="text-slate-500">{customer?.phone}</p>
               <div className="mt-3 border-t border-slate-100 pt-3">
                 <p className="font-medium text-slate-900">
-                  {vehicle?.registration}
+                  {vehicle?.registration ?? "No vehicle assigned"}
                 </p>
                 <p className="text-slate-500">
-                  {vehicle?.year} {vehicle?.make} {vehicle?.model}
+                  {vehicle
+                    ? [vehicle.year, vehicle.make, vehicle.model].filter(Boolean).join(" ")
+                    : null}
                 </p>
               </div>
             </CardBody>
@@ -70,12 +70,14 @@ export default async function JobDetailPage({
                 {job.status.replace("_", " ")}
               </Badge>
               <p className="text-slate-500">
-                Technician: {job.technician}
+                Technician: {job.technician ?? "Unassigned"}
               </p>
               <p className="text-slate-500">
                 Created: {formatDate(job.createdAt)}
               </p>
-              <p className="text-slate-500">Due: {formatDate(job.dueDate)}</p>
+              <p className="text-slate-500">
+                Due: {job.dueDate ? formatDate(job.dueDate) : "—"}
+              </p>
               {job.notes ? (
                 <p className="mt-2 rounded-lg bg-amber-50 px-3 py-2 text-amber-800">
                   {job.notes}
@@ -145,6 +147,13 @@ export default async function JobDetailPage({
                     </td>
                   </tr>
                 ))}
+                {job.labourLines.length === 0 ? (
+                  <tr>
+                    <td colSpan={4} className="px-5 py-4 text-center text-sm text-slate-400">
+                      No labour lines yet.
+                    </td>
+                  </tr>
+                ) : null}
               </tbody>
             </table>
             </div>
