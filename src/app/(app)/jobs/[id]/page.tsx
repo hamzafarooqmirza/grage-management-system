@@ -2,11 +2,11 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { TopBar } from "@/components/layout/TopBar";
 import { Card, CardBody, CardHeader } from "@/components/ui/Card";
-import { Badge } from "@/components/ui/Badge";
 import { getCustomer, getJob, getVehicle } from "@/lib/supabase/queries";
 import { jobLineTotal } from "@/lib/totals";
 import { formatCurrency, formatDate } from "@/lib/format";
 import { ArrowLeft } from "lucide-react";
+import { JobStatusSelect } from "@/components/jobs/JobStatusSelect";
 
 export default async function JobDetailPage({
   params,
@@ -66,9 +66,7 @@ export default async function JobDetailPage({
           <Card>
             <CardHeader title="Job status" />
             <CardBody className="space-y-2 text-sm">
-              <Badge className="capitalize">
-                {job.status.replace("_", " ")}
-              </Badge>
+              <JobStatusSelect jobId={job.id} status={job.status} />
               <p className="text-slate-500">
                 Technician: {job.technician ?? "Unassigned"}
               </p>
