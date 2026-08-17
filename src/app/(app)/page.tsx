@@ -106,14 +106,14 @@ export default async function DashboardPage() {
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
           <Card className="lg:col-span-2">
             <CardHeader
-              title="Today's diary"
+              title="Today's bookings"
               subtitle={formatDate(TODAY)}
               action={
                 <Link
                   href="/diary"
                   className="text-xs font-medium text-slate-500 hover:text-slate-900"
                 >
-                  View diary →
+                  View bookings →
                 </Link>
               }
             />
