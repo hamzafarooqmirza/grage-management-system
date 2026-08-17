@@ -62,7 +62,7 @@ export function BookJobButton({ customers }: { customers: Customer[] }) {
         open={open}
         onClose={() => setOpen(false)}
         title="Book a Job"
-        subtitle="Schedule a new booking in the diary"
+        subtitle="Schedule a new booking"
         icon={CalendarClock}
         maxWidth="max-w-lg"
       >

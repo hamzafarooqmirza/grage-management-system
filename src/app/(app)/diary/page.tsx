@@ -39,7 +39,7 @@ export default async function DiaryPage() {
   return (
     <>
       <TopBar
-        title="Diary"
+        title="Bookings"
         subtitle="Upcoming booking calendar across bays and technicians"
       />
       <main className="flex-1 space-y-4 overflow-y-auto p-4 sm:p-6">
