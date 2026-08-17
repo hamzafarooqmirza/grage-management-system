@@ -1,6 +1,12 @@
 import { notFound } from "next/navigation";
 import { TopBar } from "@/components/layout/TopBar";
-import { getCustomer, getInvoice, getVehicle } from "@/lib/supabase/queries";
+import {
+  getCustomer,
+  getCustomers,
+  getInvoice,
+  getVehicle,
+  getVehicles,
+} from "@/lib/supabase/queries";
 import { invoiceTotals } from "@/lib/totals";
 import { InvoiceView } from "@/components/invoices/InvoiceView";
 
@@ -13,9 +19,11 @@ export default async function InvoiceDetailPage({
   const invoice = await getInvoice(id);
   if (!invoice) notFound();
 
-  const [customer, vehicle] = await Promise.all([
+  const [customer, vehicle, customers, vehicles] = await Promise.all([
     getCustomer(invoice.customerId),
     invoice.vehicleId ? getVehicle(invoice.vehicleId) : Promise.resolve(undefined),
+    getCustomers(),
+    getVehicles(),
   ]);
   const totals = invoiceTotals(invoice);
 
@@ -28,6 +36,8 @@ export default async function InvoiceDetailPage({
           customer={customer}
           vehicle={vehicle}
           totals={totals}
+          customers={customers}
+          vehicles={vehicles}
         />
       </main>
     </>
