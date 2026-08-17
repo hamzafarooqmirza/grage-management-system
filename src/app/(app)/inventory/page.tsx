@@ -3,7 +3,8 @@ import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { getParts } from "@/lib/supabase/queries";
 import { formatCurrency } from "@/lib/format";
-import { Plus } from "lucide-react";
+import { AddPartButton } from "@/components/forms/AddPartModal";
+import { EditPartButton } from "@/components/forms/EditPartModal";
 
 export default async function InventoryPage() {
   const parts = await getParts();
@@ -17,9 +18,7 @@ export default async function InventoryPage() {
       />
       <main className="flex-1 space-y-4 overflow-y-auto p-4 sm:p-6">
         <div className="flex justify-end">
-          <button className="flex items-center gap-2 rounded-lg bg-accent-600 px-3 py-2 text-sm font-medium text-white shadow-sm shadow-accent-600/30 hover:bg-accent-700">
-            <Plus size={15} /> New part
-          </button>
+          <AddPartButton />
         </div>
         <Card>
           <div className="overflow-x-auto">
@@ -32,6 +31,7 @@ export default async function InventoryPage() {
                 <th className="px-5 py-3 font-medium">Stock</th>
                 <th className="px-5 py-3 font-medium">Cost / Sell</th>
                 <th className="px-5 py-3 font-medium">Status</th>
+                <th className="px-5 py-3 font-medium text-right">Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -76,12 +76,15 @@ export default async function InventoryPage() {
                         <Badge tone="green">In stock</Badge>
                       )}
                     </td>
+                    <td className="px-5 py-3 text-right">
+                      <EditPartButton part={p} />
+                    </td>
                   </tr>
                 );
               })}
               {parts.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="px-5 py-6 text-center text-sm text-slate-400">
+                  <td colSpan={7} className="px-5 py-6 text-center text-sm text-slate-400">
                     No parts tracked yet.
                   </td>
                 </tr>
