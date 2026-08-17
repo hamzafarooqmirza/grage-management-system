@@ -13,6 +13,7 @@ import {
 import { invoiceTotals } from "@/lib/totals";
 import { formatCurrency, formatDate, daysUntil } from "@/lib/format";
 import { ArrowLeft } from "lucide-react";
+import { EditCustomerButton } from "@/components/forms/EditCustomerModal";
 
 const invoiceStatusTone: Record<string, "neutral" | "blue" | "green" | "amber" | "red"> = {
   draft: "neutral",
@@ -50,7 +51,10 @@ export default async function CustomerDetailPage({
 
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
           <Card className="lg:col-span-1">
-            <CardHeader title="Customer details" />
+            <CardHeader
+              title="Customer details"
+              action={<EditCustomerButton customer={customer} />}
+            />
             <CardBody className="space-y-2 text-sm">
               <p>
                 <span className="text-slate-500">Phone:</span>{" "}

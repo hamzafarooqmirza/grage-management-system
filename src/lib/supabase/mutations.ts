@@ -2,7 +2,8 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "./server";
-import type { JobType } from "@/lib/types";
+import type { JobStatus, JobType } from "@/lib/types";
+import { JOB_TYPE_LABELS } from "@/lib/job-types";
 
 export interface MutationResult {
   error?: string;
@@ -48,6 +49,40 @@ export async function addCustomer(input: {
   return {};
 }
 
+export async function updateCustomer(
+  id: string,
+  input: {
+    fullName: string;
+    email: string;
+    phone: string;
+    addressLine: string;
+    city: string;
+    postCode: string;
+    notes?: string;
+  }
+): Promise<MutationResult> {
+  const supabase = await createClient();
+
+  const { error } = await supabase
+    .from("customers")
+    .update({
+      full_name: input.fullName,
+      email: input.email,
+      phone: input.phone,
+      address_line: input.addressLine,
+      city: input.city,
+      post_code: input.postCode,
+      notes: input.notes || null,
+    })
+    .eq("id", id);
+
+  if (error) return { error: error.message };
+
+  revalidatePath("/customers");
+  revalidatePath(`/customers/${id}`);
+  return {};
+}
+
 export async function addBooking(input: {
   customerId: string;
   jobType: JobType;
@@ -57,17 +92,54 @@ export async function addBooking(input: {
 }): Promise<MutationResult> {
   const supabase = await createClient();
 
-  const { error } = await supabase.from("bookings").insert({
-    customer_id: input.customerId,
-    job_type: input.jobType,
-    date: input.date,
-    est_price: input.estPrice ?? null,
-    notes: input.notes || null,
-  });
+  const { data: booking, error } = await supabase
+    .from("bookings")
+    .insert({
+      customer_id: input.customerId,
+      job_type: input.jobType,
+      date: input.date,
+      est_price: input.estPrice ?? null,
+      notes: input.notes || null,
+    })
+    .select("id")
+    .single();
 
   if (error) return { error: error.message };
 
+  // A booking always creates its job card so the job moves through the
+  // workshop board (booked -> in progress -> ... -> invoiced) from here.
+  const { error: jobError } = await supabase.from("job_cards").insert({
+    booking_id: booking.id,
+    customer_id: input.customerId,
+    status: "booked",
+    description: JOB_TYPE_LABELS[input.jobType],
+    due_date: input.date,
+    notes: input.notes || null,
+  });
+
+  if (jobError) return { error: jobError.message };
+
   revalidatePath("/diary");
+  revalidatePath("/jobs");
+  revalidatePath("/");
+  return {};
+}
+
+export async function updateJobStatus(
+  id: string,
+  status: JobStatus
+): Promise<MutationResult> {
+  const supabase = await createClient();
+
+  const { error } = await supabase
+    .from("job_cards")
+    .update({ status })
+    .eq("id", id);
+
+  if (error) return { error: error.message };
+
+  revalidatePath("/jobs");
+  revalidatePath(`/jobs/${id}`);
   revalidatePath("/");
   return {};
 }

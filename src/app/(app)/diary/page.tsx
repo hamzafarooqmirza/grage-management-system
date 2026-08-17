@@ -1,9 +1,11 @@
+import Link from "next/link";
 import { TopBar } from "@/components/layout/TopBar";
 import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
-import { getBookings, getCustomers, getVehicles } from "@/lib/supabase/queries";
+import { getBookings, getCustomers, getJobCards, getVehicles } from "@/lib/supabase/queries";
 import { BookJobButton } from "@/components/forms/BookJobModal";
 import { JOB_TYPE_LABELS, JOB_TYPE_TONE } from "@/lib/job-types";
+import { formatCurrency } from "@/lib/format";
 
 function upcomingDays(count: number) {
   const dayNames = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
@@ -26,14 +28,18 @@ function upcomingDays(count: number) {
 }
 
 export default async function DiaryPage() {
-  const [bookings, customers, vehicles] = await Promise.all([
+  const [bookings, customers, vehicles, jobCards] = await Promise.all([
     getBookings(),
     getCustomers(),
     getVehicles(),
+    getJobCards(),
   ]);
 
   const customerById = new Map(customers.map((c) => [c.id, c]));
   const vehicleById = new Map(vehicles.map((v) => [v.id, v]));
+  const jobIdByBookingId = new Map(
+    jobCards.filter((j) => j.bookingId).map((j) => [j.bookingId as string, j.id])
+  );
   const days = upcomingDays(5);
 
   return (
@@ -73,28 +79,54 @@ export default async function DiaryPage() {
                       const vehicle = b.vehicleId
                         ? vehicleById.get(b.vehicleId)
                         : undefined;
+                      const jobId = jobIdByBookingId.get(b.id);
+                      const assignment = [b.bay, b.technician].filter(Boolean).join(" · ");
                       return (
                         <div
                           key={b.id}
                           className="rounded-lg border border-slate-100 p-2.5"
                         >
-                          <div className="flex items-center justify-between">
-                            <span className="text-xs font-semibold text-slate-900">
-                              {b.time ?? "—"}
-                            </span>
+                          <div className="flex items-center justify-between gap-2">
                             <Badge tone={JOB_TYPE_TONE[b.jobType]}>
                               {JOB_TYPE_LABELS[b.jobType]}
                             </Badge>
+                            {b.time ? (
+                              <span className="text-xs font-semibold text-slate-900">
+                                {b.time}
+                              </span>
+                            ) : null}
                           </div>
-                          <p className="mt-1 text-sm font-medium text-slate-900">
-                            {customer?.name}
+                          <p className="mt-1.5 text-sm font-medium text-slate-900">
+                            {customer?.name ?? "Unknown customer"}
                           </p>
-                          <p className="text-xs text-slate-500">
-                            {vehicle?.registration ?? "—"}
-                          </p>
-                          <p className="mt-1 text-xs text-slate-400">
-                            {[b.bay, b.technician].filter(Boolean).join(" · ") || "Unassigned"}
-                          </p>
+                          {vehicle ? (
+                            <p className="text-xs text-slate-500">
+                              {vehicle.registration}
+                            </p>
+                          ) : null}
+                          {b.estPrice != null ? (
+                            <p className="mt-1 text-xs font-medium text-slate-700">
+                              Est. {formatCurrency(b.estPrice)}
+                            </p>
+                          ) : null}
+                          {b.notes ? (
+                            <p className="mt-1 line-clamp-2 text-xs text-slate-500">
+                              {b.notes}
+                            </p>
+                          ) : null}
+                          <div className="mt-1.5 flex items-center justify-between">
+                            <span className="text-xs text-slate-400">
+                              {assignment || "Unassigned"}
+                            </span>
+                            {jobId ? (
+                              <Link
+                                href={`/jobs/${jobId}`}
+                                className="text-xs font-medium text-accent-600 hover:underline"
+                              >
+                                View job →
+                              </Link>
+                            ) : null}
+                          </div>
                         </div>
                       );
                     })
