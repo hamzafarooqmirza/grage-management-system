@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "./server";
-import type { JobStatus, JobType } from "@/lib/types";
+import type { InvoiceStatus, JobStatus, JobType } from "@/lib/types";
 import { JOB_TYPE_LABELS } from "@/lib/job-types";
 
 export interface MutationResult {
@@ -144,15 +144,18 @@ export async function updateJobStatus(
   return {};
 }
 
-export async function addInvoice(input: {
+export interface InvoiceInput {
   customerId: string;
   vehicleId: string;
   invoiceDate: string;
   dueDate: string;
   vatRate: number;
+  status?: InvoiceStatus;
   notes?: string;
   lineItems: { description: string; quantity: number; unitPrice: number }[];
-}): Promise<MutationResult> {
+}
+
+export async function addInvoice(input: InvoiceInput): Promise<MutationResult> {
   const supabase = await createClient();
 
   const { data: invoice, error } = await supabase
@@ -163,6 +166,7 @@ export async function addInvoice(input: {
       date: input.invoiceDate,
       due_date: input.dueDate,
       vat_rate: input.vatRate,
+      status: input.status,
       notes: input.notes || null,
     })
     .select("id")
@@ -186,6 +190,55 @@ export async function addInvoice(input: {
   }
 
   revalidatePath("/invoices");
+  revalidatePath("/");
+  return {};
+}
+
+export async function updateInvoice(
+  id: string,
+  input: InvoiceInput
+): Promise<MutationResult> {
+  const supabase = await createClient();
+
+  const { error } = await supabase
+    .from("invoices")
+    .update({
+      customer_id: input.customerId,
+      vehicle_id: input.vehicleId || null,
+      date: input.invoiceDate,
+      due_date: input.dueDate,
+      vat_rate: input.vatRate,
+      status: input.status,
+      notes: input.notes || null,
+    })
+    .eq("id", id);
+
+  if (error) return { error: error.message };
+
+  const { error: deleteError } = await supabase
+    .from("invoice_line_items")
+    .delete()
+    .eq("invoice_id", id);
+
+  if (deleteError) return { error: deleteError.message };
+
+  const lineItems = input.lineItems.filter((li) => li.description.trim());
+  if (lineItems.length > 0) {
+    const { error: lineItemsError } = await supabase
+      .from("invoice_line_items")
+      .insert(
+        lineItems.map((li) => ({
+          invoice_id: id,
+          description: li.description,
+          quantity: li.quantity,
+          unit_price: li.unitPrice,
+        }))
+      );
+    if (lineItemsError) return { error: lineItemsError.message };
+  }
+
+  revalidatePath("/invoices");
+  revalidatePath(`/invoices/${id}`);
   revalidatePath("/");
   return {};
 }

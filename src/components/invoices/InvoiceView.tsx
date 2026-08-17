@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { ArrowLeft, Download, Loader2 } from "lucide-react";
 import { InvoicePaper, A4_WIDTH_PX, A4_HEIGHT_PX } from "./InvoicePaper";
+import { EditInvoiceButton } from "@/components/forms/EditInvoiceModal";
 import type { Customer, Invoice, Vehicle } from "@/lib/types";
 
 interface InvoiceViewProps {
@@ -11,9 +12,18 @@ interface InvoiceViewProps {
   customer?: Customer;
   vehicle?: Vehicle;
   totals: { subtotal: number; vat: number; total: number };
+  customers: Customer[];
+  vehicles: Vehicle[];
 }
 
-export function InvoiceView({ invoice, customer, vehicle, totals }: InvoiceViewProps) {
+export function InvoiceView({
+  invoice,
+  customer,
+  vehicle,
+  totals,
+  customers,
+  vehicles,
+}: InvoiceViewProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const paperRef = useRef<HTMLDivElement>(null);
   const [scale, setScale] = useState<number | null>(null);
@@ -78,19 +88,22 @@ export function InvoiceView({ invoice, customer, vehicle, totals }: InvoiceViewP
         >
           <ArrowLeft size={15} /> Back to invoices
         </Link>
-        <button
-          type="button"
-          onClick={handleDownload}
-          disabled={downloading}
-          className="flex items-center justify-center gap-2 rounded-lg bg-accent-600 px-3 py-2 text-sm font-medium text-white shadow-sm shadow-accent-600/30 transition-colors hover:bg-accent-700 disabled:opacity-60"
-        >
-          {downloading ? (
-            <Loader2 size={15} className="animate-spin" />
-          ) : (
-            <Download size={15} />
-          )}
-          {downloading ? "Preparing PDF..." : "Download PDF"}
-        </button>
+        <div className="flex gap-2">
+          <EditInvoiceButton invoice={invoice} customers={customers} vehicles={vehicles} />
+          <button
+            type="button"
+            onClick={handleDownload}
+            disabled={downloading}
+            className="flex items-center justify-center gap-2 rounded-lg bg-accent-600 px-3 py-2 text-sm font-medium text-white shadow-sm shadow-accent-600/30 transition-colors hover:bg-accent-700 disabled:opacity-60"
+          >
+            {downloading ? (
+              <Loader2 size={15} className="animate-spin" />
+            ) : (
+              <Download size={15} />
+            )}
+            {downloading ? "Preparing PDF..." : "Download PDF"}
+          </button>
+        </div>
       </div>
 
       <div ref={containerRef} className="w-full">
