@@ -189,3 +189,62 @@ export async function addInvoice(input: {
   revalidatePath("/");
   return {};
 }
+
+export interface PartInput {
+  sku: string;
+  name: string;
+  supplier?: string;
+  category?: string;
+  stockLevel: number;
+  reorderLevel: number;
+  costPrice: number;
+  sellPrice: number;
+}
+
+export async function addPart(input: PartInput): Promise<MutationResult> {
+  const supabase = await createClient();
+
+  const { error } = await supabase.from("parts").insert({
+    sku: input.sku,
+    name: input.name,
+    supplier: input.supplier || null,
+    category: input.category || null,
+    stock_level: input.stockLevel,
+    reorder_level: input.reorderLevel,
+    cost_price: input.costPrice,
+    sell_price: input.sellPrice,
+  });
+
+  if (error) return { error: error.message };
+
+  revalidatePath("/inventory");
+  revalidatePath("/");
+  return {};
+}
+
+export async function updatePart(
+  id: string,
+  input: PartInput
+): Promise<MutationResult> {
+  const supabase = await createClient();
+
+  const { error } = await supabase
+    .from("parts")
+    .update({
+      sku: input.sku,
+      name: input.name,
+      supplier: input.supplier || null,
+      category: input.category || null,
+      stock_level: input.stockLevel,
+      reorder_level: input.reorderLevel,
+      cost_price: input.costPrice,
+      sell_price: input.sellPrice,
+    })
+    .eq("id", id);
+
+  if (error) return { error: error.message };
+
+  revalidatePath("/inventory");
+  revalidatePath("/");
+  return {};
+}
