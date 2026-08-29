@@ -23,16 +23,21 @@ export default async function CustomerIntelligencePage() {
     getInvoices(),
   ]);
 
+  // Only count visits that have actually happened, so a future booking can't
+  // masquerade as the customer's most recent (and put them in "Active").
+  const today = new Date().toISOString().slice(0, 10);
   const bookingsByCustomer = new Map<string, string[]>();
   for (const b of bookings) {
+    if (b.date > today) continue;
     const list = bookingsByCustomer.get(b.customerId) ?? [];
     list.push(b.date);
     bookingsByCustomer.set(b.customerId, list);
   }
 
+  // Lifetime spend reflects money actually collected, not billed-but-unpaid.
   const spendByCustomer = new Map<string, number>();
   for (const inv of invoices) {
-    if (inv.status === "estimate" || inv.status === "draft") continue;
+    if (inv.status !== "paid") continue;
     const total = invoiceTotals(inv).total;
     spendByCustomer.set(inv.customerId, (spendByCustomer.get(inv.customerId) ?? 0) + total);
   }

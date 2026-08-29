@@ -22,16 +22,24 @@ export default async function AccountingPage() {
     .filter((i) => i.status === "sent" || i.status === "overdue")
     .reduce((sum, inv) => sum + invoiceTotals(inv).total, 0);
 
-  // Cost of parts used across all job cards (only lines linked to a known part).
-  const costOfPartsUsed = jobCards.reduce((sum, job) => {
-    return (
-      sum +
-      job.partLines.reduce((lineSum, line) => {
-        const cost = line.partId ? partById.get(line.partId)?.costPrice ?? 0 : 0;
-        return lineSum + cost * line.quantity;
-      }, 0)
-    );
-  }, 0);
+  // Cost of parts used, restricted to jobs whose linked invoice is paid —
+  // matching costs to the same revenue being recognized above. Parts on
+  // jobs that aren't invoiced (or invoiced but unpaid) don't reduce margin
+  // yet, since that revenue isn't counted either.
+  const paidJobIds = new Set(
+    paidInvoices.map((inv) => inv.jobId).filter((id): id is string => Boolean(id))
+  );
+  const costOfPartsUsed = jobCards
+    .filter((job) => paidJobIds.has(job.id))
+    .reduce((sum, job) => {
+      return (
+        sum +
+        job.partLines.reduce((lineSum, line) => {
+          const cost = line.partId ? partById.get(line.partId)?.costPrice ?? 0 : 0;
+          return lineSum + cost * line.quantity;
+        }, 0)
+      );
+    }, 0);
 
   const grossProfit = revenue - costOfPartsUsed;
   const grossMargin = revenue > 0 ? (grossProfit / revenue) * 100 : 0;
@@ -73,7 +81,7 @@ export default async function AccountingPage() {
         </div>
 
         <Card>
-          <CardHeader title="Cost of parts used" subtitle="Against paid + outstanding revenue" />
+          <CardHeader title="Cost of parts used" subtitle="Jobs linked to paid invoices only" />
           <CardBody className="space-y-2 text-sm">
             <div className="flex justify-between">
               <span className="text-slate-500">Revenue (paid)</span>

@@ -1,6 +1,17 @@
 import { forwardRef } from "react";
-import type { Customer, Invoice, Vehicle } from "@/lib/types";
+import type { Customer, GarageSettings, Invoice, Vehicle } from "@/lib/types";
 import { formatCurrency, formatDate } from "@/lib/format";
+
+const DEFAULT_GARAGE: GarageSettings = {
+  id: "",
+  garageName: "My Garage Ltd",
+  addressLine: "14 Workshop Way",
+  city: "Manchester",
+  postCode: "M1 2AB",
+  vatNumber: "GB123456789",
+  defaultVatRate: 20,
+  invoicePrefix: "INV",
+};
 
 // A4 at 96 DPI: 210mm x 297mm
 export const A4_WIDTH_PX = 794;
@@ -19,10 +30,11 @@ interface InvoicePaperProps {
   customer?: Customer;
   vehicle?: Vehicle;
   totals: { subtotal: number; vat: number; total: number };
+  garage?: GarageSettings;
 }
 
 export const InvoicePaper = forwardRef<HTMLDivElement, InvoicePaperProps>(
-  function InvoicePaper({ invoice, customer, vehicle, totals }, ref) {
+  function InvoicePaper({ invoice, customer, vehicle, totals, garage = DEFAULT_GARAGE }, ref) {
     const status = statusStyles[invoice.status] ?? statusStyles.draft;
 
     return (
@@ -50,13 +62,15 @@ export const InvoicePaper = forwardRef<HTMLDivElement, InvoicePaperProps>(
           }}
         >
           <div>
-            <p style={{ fontSize: 20, fontWeight: 700, margin: 0 }}>My Garage Ltd</p>
+            <p style={{ fontSize: 20, fontWeight: 700, margin: 0 }}>{garage.garageName}</p>
             <p style={{ fontSize: 13, color: "#64748b", margin: "6px 0 0" }}>
-              14 Workshop Way, Manchester, M1 2AB
+              {[garage.addressLine, garage.city, garage.postCode].filter(Boolean).join(", ")}
             </p>
-            <p style={{ fontSize: 13, color: "#64748b", margin: "2px 0 0" }}>
-              VAT No. GB123456789
-            </p>
+            {garage.vatNumber ? (
+              <p style={{ fontSize: 13, color: "#64748b", margin: "2px 0 0" }}>
+                VAT No. {garage.vatNumber}
+              </p>
+            ) : null}
           </div>
           <div style={{ textAlign: "right" }}>
             <p style={{ fontSize: 22, fontWeight: 700, margin: 0 }}>
@@ -190,7 +204,7 @@ export const InvoicePaper = forwardRef<HTMLDivElement, InvoicePaperProps>(
         ) : null}
 
         <div style={{ marginTop: "auto", paddingTop: 24, borderTop: "1px solid #f1f5f9", fontSize: 11, color: "#94a3b8", textAlign: "center" }}>
-          Thank you for your business — My Garage Ltd
+          Thank you for your business — {garage.garageName}
         </div>
       </div>
     );
