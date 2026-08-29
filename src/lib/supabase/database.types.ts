@@ -719,6 +719,7 @@ export type Database = {
       next_invoice_number: { Args: never; Returns: string }
       is_garage_member: { Args: { target_garage_id: string }; Returns: boolean }
       set_invoice_number: { Args: never; Returns: undefined }
+      create_garage_with_owner: { Args: { p_garage_name: string }; Returns: string }
     }
     Enums: {
       invoice_status: "estimate" | "draft" | "sent" | "paid" | "overdue"

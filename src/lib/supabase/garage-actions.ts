@@ -29,25 +29,18 @@ export async function createGarage(name: string): Promise<MutationResult> {
   if (!garageName) return { error: "Garage name is required." };
 
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return { error: "You must be signed in." };
 
-  const { data: garage, error } = await supabase
-    .from("garage_settings")
-    .insert({ garage_name: garageName })
-    .select("id")
-    .single();
+  // Creating the garage and adding its founding owner membership has to
+  // happen atomically in one security-definer call: there is no RLS-safe
+  // way to do it as two plain client inserts (see create_garage_with_owner
+  // in the migration for why).
+  const { data: garageId, error } = await supabase.rpc("create_garage_with_owner", {
+    p_garage_name: garageName,
+  });
   if (error) return { error: error.message };
 
-  const { error: memberError } = await supabase
-    .from("garage_members")
-    .insert({ garage_id: garage.id, user_id: user.id, role: "owner" });
-  if (memberError) return { error: memberError.message };
-
   const cookieStore = await cookies();
-  cookieStore.set(GARAGE_COOKIE, garage.id, {
+  cookieStore.set(GARAGE_COOKIE, garageId, {
     path: "/",
     httpOnly: true,
     sameSite: "lax",
