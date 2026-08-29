@@ -5,24 +5,33 @@ import { useRouter } from "next/navigation";
 import {
   CalendarClock,
   ClipboardList,
+  DoorOpen,
   FileText,
   Flag,
   PoundSterling,
   Plus,
   User,
+  Wrench,
 } from "lucide-react";
 import { Modal } from "@/components/ui/Modal";
 import { FieldGroup, Select, TextArea, TextInput } from "@/components/ui/Field";
 import { addBooking } from "@/lib/supabase/mutations";
 import { JOB_TYPES, JOB_TYPE_LABELS } from "@/lib/job-types";
 import { JOB_PRIORITIES, JOB_PRIORITY_LABELS } from "@/lib/job-status";
-import type { Customer, JobPriority, JobType } from "@/lib/types";
+import type { Customer, Employee, JobPriority, JobType } from "@/lib/types";
 
-export function BookJobButton({ customers }: { customers: Customer[] }) {
+export function BookJobButton({
+  customers,
+  employees,
+}: {
+  customers: Customer[];
+  employees: Employee[];
+}) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const activeEmployees = employees.filter((e) => e.active);
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -37,6 +46,8 @@ export function BookJobButton({ customers }: { customers: Customer[] }) {
       date: String(formData.get("date") ?? ""),
       estPrice: estPriceRaw ? Number(estPriceRaw) : undefined,
       priority: String(formData.get("priority") ?? "medium") as JobPriority,
+      technician: String(formData.get("technician") ?? ""),
+      bay: String(formData.get("bay") ?? ""),
       notes: String(formData.get("notes") ?? ""),
     });
 
@@ -120,14 +131,31 @@ export function BookJobButton({ customers }: { customers: Customer[] }) {
             </FieldGroup>
           </div>
 
-          <FieldGroup label="Priority" htmlFor="priority">
-            <Select id="priority" name="priority" icon={Flag} defaultValue="medium">
-              {JOB_PRIORITIES.map((p) => (
-                <option key={p} value={p}>
-                  {JOB_PRIORITY_LABELS[p]}
-                </option>
-              ))}
-            </Select>
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <FieldGroup label="Priority" htmlFor="priority">
+              <Select id="priority" name="priority" icon={Flag} defaultValue="medium">
+                {JOB_PRIORITIES.map((p) => (
+                  <option key={p} value={p}>
+                    {JOB_PRIORITY_LABELS[p]}
+                  </option>
+                ))}
+              </Select>
+            </FieldGroup>
+
+            <FieldGroup label="Technician" htmlFor="technician">
+              <Select id="technician" name="technician" icon={Wrench} defaultValue="">
+                <option value="">Unassigned</option>
+                {activeEmployees.map((e) => (
+                  <option key={e.id} value={e.fullName}>
+                    {e.fullName}
+                  </option>
+                ))}
+              </Select>
+            </FieldGroup>
+          </div>
+
+          <FieldGroup label="Bay" htmlFor="bay">
+            <TextInput id="bay" name="bay" icon={DoorOpen} placeholder="e.g. Bay 2" />
           </FieldGroup>
 
           <FieldGroup label="Notes" htmlFor="notes">

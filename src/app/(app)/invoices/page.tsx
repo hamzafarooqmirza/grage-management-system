@@ -2,7 +2,9 @@ import Link from "next/link";
 import { TopBar } from "@/components/layout/TopBar";
 import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
+import { DeleteButton } from "@/components/ui/DeleteButton";
 import { getCustomers, getGarageSettings, getInvoices, getVehicles } from "@/lib/supabase/queries";
+import { deleteInvoice } from "@/lib/supabase/mutations";
 import { invoiceTotals } from "@/lib/totals";
 import { formatCurrency, formatDate } from "@/lib/format";
 import { CreateInvoiceButton } from "@/components/forms/CreateInvoiceModal";
@@ -58,6 +60,7 @@ export default async function InvoicesPage() {
                 <th className="px-5 py-3 font-medium">Due</th>
                 <th className="px-5 py-3 font-medium">Status</th>
                 <th className="px-5 py-3 text-right font-medium">Total</th>
+                <th className="px-5 py-3 text-right font-medium">Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -100,12 +103,20 @@ export default async function InvoicesPage() {
                     <td className="px-5 py-3 text-right font-medium text-slate-900">
                       {formatCurrency(total)}
                     </td>
+                    <td className="px-5 py-3 text-right">
+                      <DeleteButton
+                        id={inv.id}
+                        action={deleteInvoice}
+                        label={`Delete ${inv.number}`}
+                        confirmMessage={`Delete invoice ${inv.number}? This cannot be undone.`}
+                      />
+                    </td>
                   </tr>
                 );
               })}
               {invoices.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="px-5 py-6 text-center text-sm text-slate-400">
+                  <td colSpan={8} className="px-5 py-6 text-center text-sm text-slate-400">
                     No invoices yet. Click &ldquo;New invoice&rdquo; to create one.
                   </td>
                 </tr>

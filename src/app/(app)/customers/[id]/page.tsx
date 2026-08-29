@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { TopBar } from "@/components/layout/TopBar";
 import { Card, CardBody, CardHeader } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
+import { DeleteButton } from "@/components/ui/DeleteButton";
 import {
   getBookingsForCustomer,
   getCustomer,
@@ -10,6 +11,7 @@ import {
   getJobsForCustomer,
   getVehiclesForCustomer,
 } from "@/lib/supabase/queries";
+import { deleteCustomer } from "@/lib/supabase/mutations";
 import { invoiceTotals } from "@/lib/totals";
 import { formatCurrency, formatDate, daysUntil } from "@/lib/format";
 import { ArrowLeft } from "lucide-react";
@@ -55,7 +57,18 @@ export default async function CustomerDetailPage({
           <Card className="lg:col-span-1">
             <CardHeader
               title="Customer details"
-              action={<EditCustomerButton customer={customer} />}
+              action={
+                <div className="flex items-center gap-1">
+                  <EditCustomerButton customer={customer} />
+                  <DeleteButton
+                    id={customer.id}
+                    action={deleteCustomer}
+                    label={`Delete ${customer.name}`}
+                    confirmMessage={`Delete ${customer.name}? This cannot be undone.`}
+                    redirectTo="/customers"
+                  />
+                </div>
+              }
             />
             <CardBody className="space-y-2 text-sm">
               <p>

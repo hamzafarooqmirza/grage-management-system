@@ -6,6 +6,8 @@ import { useRouter } from "next/navigation";
 import { RefreshCw, Search } from "lucide-react";
 import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
+import { DeleteButton } from "@/components/ui/DeleteButton";
+import { deleteJobCard } from "@/lib/supabase/mutations";
 import { jobLineTotal } from "@/lib/totals";
 import { addMinutesToTime, formatCurrency, formatDateSlash } from "@/lib/format";
 import {
@@ -173,6 +175,7 @@ export function JobsBoard({
                 <th className="px-5 py-3 font-medium">Priority</th>
                 <th className="px-5 py-3 font-medium">Items</th>
                 <th className="px-5 py-3 text-right font-medium">Total Cost</th>
+                <th className="px-5 py-3 text-right font-medium">Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -237,12 +240,20 @@ export function JobsBoard({
                     <td className="px-5 py-3 text-right font-medium text-slate-900">
                       {formatCurrency(total)}
                     </td>
+                    <td className="px-5 py-3 text-right">
+                      <DeleteButton
+                        id={job.id}
+                        action={deleteJobCard}
+                        label="Delete job"
+                        confirmMessage={`Delete this job for ${vehicle?.registration ?? "this vehicle"}? This cannot be undone.`}
+                      />
+                    </td>
                   </tr>
                 );
               })}
               {filtered.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="px-5 py-6 text-center text-sm text-slate-400">
+                  <td colSpan={8} className="px-5 py-6 text-center text-sm text-slate-400">
                     No jobs found.
                   </td>
                 </tr>

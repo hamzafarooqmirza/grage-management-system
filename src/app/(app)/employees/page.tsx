@@ -1,7 +1,9 @@
 import { TopBar } from "@/components/layout/TopBar";
 import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
+import { DeleteButton } from "@/components/ui/DeleteButton";
 import { getEmployees } from "@/lib/supabase/queries";
+import { deleteEmployee } from "@/lib/supabase/mutations";
 import { formatCurrency } from "@/lib/format";
 import { AddEmployeeButton } from "@/components/forms/AddEmployeeModal";
 import { EditEmployeeButton } from "@/components/forms/EditEmployeeModal";
@@ -58,7 +60,15 @@ export default async function EmployeesPage() {
                       )}
                     </td>
                     <td className="px-5 py-3 text-right">
-                      <EditEmployeeButton employee={emp} />
+                      <div className="flex items-center justify-end gap-1">
+                        <EditEmployeeButton employee={emp} />
+                        <DeleteButton
+                          id={emp.id}
+                          action={deleteEmployee}
+                          label={`Delete ${emp.fullName}`}
+                          confirmMessage={`Delete ${emp.fullName}? This cannot be undone.`}
+                        />
+                      </div>
                     </td>
                   </tr>
                 ))}

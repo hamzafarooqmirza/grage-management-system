@@ -2,12 +2,16 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { TopBar } from "@/components/layout/TopBar";
 import { Card, CardBody, CardHeader } from "@/components/ui/Card";
-import { getCustomer, getJob, getVehicle } from "@/lib/supabase/queries";
+import { DeleteButton } from "@/components/ui/DeleteButton";
+import { getCustomer, getEmployees, getJob, getParts, getVehicle } from "@/lib/supabase/queries";
+import { deleteJobCard } from "@/lib/supabase/mutations";
 import { jobLineTotal } from "@/lib/totals";
 import { formatCurrency, formatDate } from "@/lib/format";
 import { ArrowLeft } from "lucide-react";
 import { JobStatusSelect } from "@/components/jobs/JobStatusSelect";
 import { JobPrioritySelect } from "@/components/jobs/JobPrioritySelect";
+import { JobTechnicianSelect } from "@/components/jobs/JobTechnicianSelect";
+import { EditJobLinesButton } from "@/components/jobs/EditJobLinesModal";
 
 export default async function JobDetailPage({
   params,
@@ -18,10 +22,13 @@ export default async function JobDetailPage({
   const job = await getJob(id);
   if (!job) notFound();
 
-  const [customer, vehicle] = await Promise.all([
+  const [customer, vehicle, employees, parts] = await Promise.all([
     getCustomer(job.customerId),
     job.vehicleId ? getVehicle(job.vehicleId) : Promise.resolve(undefined),
+    getEmployees(),
+    getParts(),
   ]);
+  const activeEmployees = employees.filter((e) => e.active);
   const { labour, partsTotal, total } = jobLineTotal(job);
 
   return (
@@ -31,12 +38,21 @@ export default async function JobDetailPage({
         subtitle={job.description ?? undefined}
       />
       <main className="flex-1 space-y-6 overflow-y-auto p-4 sm:p-6">
-        <Link
-          href="/jobs"
-          className="flex items-center gap-1 text-sm text-slate-500 hover:text-slate-900"
-        >
-          <ArrowLeft size={15} /> Back to job board
-        </Link>
+        <div className="flex items-center justify-between">
+          <Link
+            href="/jobs"
+            className="flex items-center gap-1 text-sm text-slate-500 hover:text-slate-900"
+          >
+            <ArrowLeft size={15} /> Back to job board
+          </Link>
+          <DeleteButton
+            id={job.id}
+            action={deleteJobCard}
+            label="Delete job"
+            confirmMessage="Delete this job? This cannot be undone."
+            redirectTo="/jobs"
+          />
+        </div>
 
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
           <Card>
@@ -71,9 +87,11 @@ export default async function JobDetailPage({
                 <JobStatusSelect jobId={job.id} status={job.status} />
                 <JobPrioritySelect jobId={job.id} priority={job.priority} />
               </div>
-              <p className="text-slate-500">
-                Technician: {job.technician ?? "Unassigned"}
-              </p>
+              <JobTechnicianSelect
+                jobId={job.id}
+                technician={job.technician}
+                employees={activeEmployees}
+              />
               <p className="text-slate-500">
                 Created: {formatDate(job.createdAt)}
               </p>
@@ -123,7 +141,10 @@ export default async function JobDetailPage({
         </div>
 
         <Card>
-          <CardHeader title="Labour lines" />
+          <CardHeader
+            title="Labour lines"
+            action={<EditJobLinesButton job={job} parts={parts} />}
+          />
           <CardBody className="p-0">
             <div className="overflow-x-auto">
             <table className="w-full text-sm">
@@ -166,7 +187,7 @@ export default async function JobDetailPage({
         </Card>
 
         <Card>
-          <CardHeader title="Parts used" subtitle="Deducted from stock on completion" />
+          <CardHeader title="Parts used" subtitle="Parts allocated to this job" />
           <CardBody className="p-0">
             {job.partLines.length === 0 ? (
               <p className="px-5 py-4 text-sm text-slate-400">
