@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "./server";
+import { getCurrentGarageId } from "./garage";
 import type {
   EmployeeRole,
   InvoiceStatus,
@@ -25,10 +26,12 @@ export async function addCustomer(input: {
   vehicleRegistration?: string;
 }): Promise<MutationResult> {
   const supabase = await createClient();
+  const garageId = await getCurrentGarageId();
 
   const { data: customer, error } = await supabase
     .from("customers")
     .insert({
+      garage_id: garageId,
       full_name: input.fullName,
       email: input.email,
       phone: input.phone,
@@ -44,6 +47,7 @@ export async function addCustomer(input: {
   const registration = input.vehicleRegistration?.trim();
   if (registration) {
     const { error: vehicleError } = await supabase.from("vehicles").insert({
+      garage_id: garageId,
       customer_id: customer.id,
       registration: registration.toUpperCase(),
     });
@@ -68,6 +72,7 @@ export async function updateCustomer(
   }
 ): Promise<MutationResult> {
   const supabase = await createClient();
+  const garageId = await getCurrentGarageId();
 
   const { error } = await supabase
     .from("customers")
@@ -80,7 +85,8 @@ export async function updateCustomer(
       post_code: input.postCode,
       notes: input.notes || null,
     })
-    .eq("id", id);
+    .eq("id", id)
+    .eq("garage_id", garageId);
 
   if (error) return { error: error.message };
 
@@ -98,10 +104,12 @@ export async function addBooking(input: {
   notes?: string;
 }): Promise<MutationResult> {
   const supabase = await createClient();
+  const garageId = await getCurrentGarageId();
 
   const { data: booking, error } = await supabase
     .from("bookings")
     .insert({
+      garage_id: garageId,
       customer_id: input.customerId,
       job_type: input.jobType,
       date: input.date,
@@ -116,6 +124,7 @@ export async function addBooking(input: {
   // A booking always creates its job card so the job moves through the
   // workshop board (booked -> in progress -> ... -> invoiced) from here.
   const { error: jobError } = await supabase.from("job_cards").insert({
+    garage_id: garageId,
     booking_id: booking.id,
     customer_id: input.customerId,
     status: "booked",
@@ -138,11 +147,13 @@ export async function updateJobStatus(
   status: JobStatus
 ): Promise<MutationResult> {
   const supabase = await createClient();
+  const garageId = await getCurrentGarageId();
 
   const { error } = await supabase
     .from("job_cards")
     .update({ status })
-    .eq("id", id);
+    .eq("id", id)
+    .eq("garage_id", garageId);
 
   if (error) return { error: error.message };
 
@@ -157,11 +168,13 @@ export async function updateJobPriority(
   priority: JobPriority
 ): Promise<MutationResult> {
   const supabase = await createClient();
+  const garageId = await getCurrentGarageId();
 
   const { error } = await supabase
     .from("job_cards")
     .update({ priority })
-    .eq("id", id);
+    .eq("id", id)
+    .eq("garage_id", garageId);
 
   if (error) return { error: error.message };
 
@@ -184,10 +197,12 @@ export interface InvoiceInput {
 
 export async function addInvoice(input: InvoiceInput): Promise<MutationResult> {
   const supabase = await createClient();
+  const garageId = await getCurrentGarageId();
 
   const { data: invoice, error } = await supabase
     .from("invoices")
     .insert({
+      garage_id: garageId,
       customer_id: input.customerId,
       vehicle_id: input.vehicleId || null,
       date: input.invoiceDate,
@@ -207,6 +222,7 @@ export async function addInvoice(input: InvoiceInput): Promise<MutationResult> {
       .from("invoice_line_items")
       .insert(
         lineItems.map((li) => ({
+          garage_id: garageId,
           invoice_id: invoice.id,
           description: li.description,
           quantity: li.quantity,
@@ -226,6 +242,7 @@ export async function updateInvoice(
   input: InvoiceInput
 ): Promise<MutationResult> {
   const supabase = await createClient();
+  const garageId = await getCurrentGarageId();
 
   const { error } = await supabase
     .from("invoices")
@@ -238,14 +255,16 @@ export async function updateInvoice(
       status: input.status,
       notes: input.notes || null,
     })
-    .eq("id", id);
+    .eq("id", id)
+    .eq("garage_id", garageId);
 
   if (error) return { error: error.message };
 
   const { error: deleteError } = await supabase
     .from("invoice_line_items")
     .delete()
-    .eq("invoice_id", id);
+    .eq("invoice_id", id)
+    .eq("garage_id", garageId);
 
   if (deleteError) return { error: deleteError.message };
 
@@ -255,6 +274,7 @@ export async function updateInvoice(
       .from("invoice_line_items")
       .insert(
         lineItems.map((li) => ({
+          garage_id: garageId,
           invoice_id: id,
           description: li.description,
           quantity: li.quantity,
@@ -272,11 +292,13 @@ export async function updateInvoice(
 
 export async function convertEstimateToInvoice(id: string): Promise<MutationResult> {
   const supabase = await createClient();
+  const garageId = await getCurrentGarageId();
 
   const { error } = await supabase
     .from("invoices")
     .update({ status: "sent" })
     .eq("id", id)
+    .eq("garage_id", garageId)
     .eq("status", "estimate");
 
   if (error) return { error: error.message };
@@ -300,8 +322,10 @@ export interface PartInput {
 
 export async function addPart(input: PartInput): Promise<MutationResult> {
   const supabase = await createClient();
+  const garageId = await getCurrentGarageId();
 
   const { error } = await supabase.from("parts").insert({
+    garage_id: garageId,
     sku: input.sku,
     name: input.name,
     supplier: input.supplier || null,
@@ -324,6 +348,7 @@ export async function updatePart(
   input: PartInput
 ): Promise<MutationResult> {
   const supabase = await createClient();
+  const garageId = await getCurrentGarageId();
 
   const { error } = await supabase
     .from("parts")
@@ -337,7 +362,8 @@ export async function updatePart(
       cost_price: input.costPrice,
       sell_price: input.sellPrice,
     })
-    .eq("id", id);
+    .eq("id", id)
+    .eq("garage_id", garageId);
 
   if (error) return { error: error.message };
 
@@ -357,8 +383,10 @@ export interface EmployeeInput {
 
 export async function addEmployee(input: EmployeeInput): Promise<MutationResult> {
   const supabase = await createClient();
+  const garageId = await getCurrentGarageId();
 
   const { error } = await supabase.from("employees").insert({
+    garage_id: garageId,
     full_name: input.fullName,
     role: input.role,
     email: input.email || null,
@@ -378,6 +406,7 @@ export async function updateEmployee(
   input: EmployeeInput
 ): Promise<MutationResult> {
   const supabase = await createClient();
+  const garageId = await getCurrentGarageId();
 
   const { error } = await supabase
     .from("employees")
@@ -389,7 +418,8 @@ export async function updateEmployee(
       hourly_rate: input.hourlyRate,
       active: input.active,
     })
-    .eq("id", id);
+    .eq("id", id)
+    .eq("garage_id", garageId);
 
   if (error) return { error: error.message };
 
@@ -407,8 +437,10 @@ export interface ReminderInput {
 
 export async function addReminder(input: ReminderInput): Promise<MutationResult> {
   const supabase = await createClient();
+  const garageId = await getCurrentGarageId();
 
   const { error } = await supabase.from("reminders").insert({
+    garage_id: garageId,
     customer_id: input.customerId || null,
     vehicle_id: input.vehicleId || null,
     title: input.title,
@@ -428,11 +460,13 @@ export async function toggleReminderDone(
   done: boolean
 ): Promise<MutationResult> {
   const supabase = await createClient();
+  const garageId = await getCurrentGarageId();
 
   const { error } = await supabase
     .from("reminders")
     .update({ done })
-    .eq("id", id);
+    .eq("id", id)
+    .eq("garage_id", garageId);
 
   if (error) return { error: error.message };
 
@@ -443,8 +477,13 @@ export async function toggleReminderDone(
 
 export async function deleteReminder(id: string): Promise<MutationResult> {
   const supabase = await createClient();
+  const garageId = await getCurrentGarageId();
 
-  const { error } = await supabase.from("reminders").delete().eq("id", id);
+  const { error } = await supabase
+    .from("reminders")
+    .delete()
+    .eq("id", id)
+    .eq("garage_id", garageId);
 
   if (error) return { error: error.message };
 
@@ -468,6 +507,11 @@ export async function updateGarageSettings(
   input: GarageSettingsInput
 ): Promise<MutationResult> {
   const supabase = await createClient();
+  const garageId = await getCurrentGarageId();
+
+  if (id !== garageId) {
+    return { error: "You can only edit the currently selected garage." };
+  }
 
   const payload = {
     garage_name: input.garageName,
@@ -479,9 +523,10 @@ export async function updateGarageSettings(
     invoice_prefix: input.invoicePrefix,
   };
 
-  const { error } = id
-    ? await supabase.from("garage_settings").update(payload).eq("id", id)
-    : await supabase.from("garage_settings").insert(payload);
+  const { error } = await supabase
+    .from("garage_settings")
+    .update(payload)
+    .eq("id", garageId);
 
   if (error) return { error: error.message };
 
