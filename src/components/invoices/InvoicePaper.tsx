@@ -7,6 +7,7 @@ export const A4_WIDTH_PX = 794;
 export const A4_HEIGHT_PX = 1123;
 
 const statusStyles: Record<string, { bg: string; text: string }> = {
+  estimate: { bg: "#f5f3ff", text: "#6d28d9" },
   draft: { bg: "#f1f5f9", text: "#334155" },
   sent: { bg: "#eef3ff", text: "#2856d8" },
   paid: { bg: "#ecfdf5", text: "#047857" },
@@ -173,7 +174,7 @@ export const InvoicePaper = forwardRef<HTMLDivElement, InvoicePaperProps>(
                 fontWeight: 700,
               }}
             >
-              <span>Total due</span>
+              <span>{invoice.status === "estimate" ? "Estimated total" : "Total due"}</span>
               <span>{formatCurrency(totals.total)}</span>
             </div>
           </div>

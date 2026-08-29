@@ -109,6 +109,7 @@ function mapJobCard(row: JobCardRow, invoiceId?: string | null): JobCard {
     customerId: row.customer_id,
     vehicleId: row.vehicle_id,
     status: row.status,
+    priority: (row.priority as JobCard["priority"]) ?? "medium",
     technician: row.technician,
     createdAt: row.created_at,
     dueDate: row.due_date,

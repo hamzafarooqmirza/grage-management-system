@@ -1,11 +1,15 @@
 export type JobStatus =
   | "booked"
+  | "checked_in"
   | "in_progress"
   | "awaiting_parts"
   | "completed"
+  | "vehicle_released"
   | "invoiced";
 
-export type InvoiceStatus = "draft" | "sent" | "paid" | "overdue";
+export type JobPriority = "low" | "medium" | "high";
+
+export type InvoiceStatus = "estimate" | "draft" | "sent" | "paid" | "overdue";
 
 export type JobType =
   | "vehicle_recovery"
@@ -79,6 +83,7 @@ export interface JobCard {
   customerId: string;
   vehicleId: string | null;
   status: JobStatus;
+  priority: JobPriority;
   technician: string | null;
   createdAt: string;
   dueDate: string | null;

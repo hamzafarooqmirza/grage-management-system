@@ -14,8 +14,10 @@ import { invoiceTotals } from "@/lib/totals";
 import { formatCurrency, formatDate, daysUntil } from "@/lib/format";
 import { ArrowLeft } from "lucide-react";
 import { EditCustomerButton } from "@/components/forms/EditCustomerModal";
+import { JOB_STATUS_LABELS, JOB_STATUS_TONE } from "@/lib/job-status";
 
-const invoiceStatusTone: Record<string, "neutral" | "blue" | "green" | "amber" | "red"> = {
+const invoiceStatusTone: Record<string, "neutral" | "blue" | "green" | "amber" | "red" | "purple"> = {
+  estimate: "purple",
   draft: "neutral",
   sent: "blue",
   paid: "green",
@@ -169,8 +171,8 @@ export default async function CustomerDetailPage({
                         {formatDate(job.createdAt)} · {job.technician ?? "Unassigned"}
                       </p>
                     </div>
-                    <Badge className="capitalize">
-                      {job.status.replace("_", " ")}
+                    <Badge tone={JOB_STATUS_TONE[job.status]}>
+                      {JOB_STATUS_LABELS[job.status]}
                     </Badge>
                   </div>
                 ))

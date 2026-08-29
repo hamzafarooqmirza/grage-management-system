@@ -6,6 +6,7 @@ import {
   CalendarClock,
   ClipboardList,
   FileText,
+  Flag,
   PoundSterling,
   Plus,
   User,
@@ -14,7 +15,8 @@ import { Modal } from "@/components/ui/Modal";
 import { FieldGroup, Select, TextArea, TextInput } from "@/components/ui/Field";
 import { addBooking } from "@/lib/supabase/mutations";
 import { JOB_TYPES, JOB_TYPE_LABELS } from "@/lib/job-types";
-import type { Customer, JobType } from "@/lib/types";
+import { JOB_PRIORITIES, JOB_PRIORITY_LABELS } from "@/lib/job-status";
+import type { Customer, JobPriority, JobType } from "@/lib/types";
 
 export function BookJobButton({ customers }: { customers: Customer[] }) {
   const router = useRouter();
@@ -34,6 +36,7 @@ export function BookJobButton({ customers }: { customers: Customer[] }) {
       jobType: String(formData.get("jobType") ?? "") as JobType,
       date: String(formData.get("date") ?? ""),
       estPrice: estPriceRaw ? Number(estPriceRaw) : undefined,
+      priority: String(formData.get("priority") ?? "medium") as JobPriority,
       notes: String(formData.get("notes") ?? ""),
     });
 
@@ -116,6 +119,16 @@ export function BookJobButton({ customers }: { customers: Customer[] }) {
               />
             </FieldGroup>
           </div>
+
+          <FieldGroup label="Priority" htmlFor="priority">
+            <Select id="priority" name="priority" icon={Flag} defaultValue="medium">
+              {JOB_PRIORITIES.map((p) => (
+                <option key={p} value={p}>
+                  {JOB_PRIORITY_LABELS[p]}
+                </option>
+              ))}
+            </Select>
+          </FieldGroup>
 
           <FieldGroup label="Notes" htmlFor="notes">
             <div className="relative">

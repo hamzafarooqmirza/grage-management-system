@@ -7,7 +7,8 @@ import { invoiceTotals } from "@/lib/totals";
 import { formatCurrency, formatDate } from "@/lib/format";
 import { CreateInvoiceButton } from "@/components/forms/CreateInvoiceModal";
 
-const statusTone: Record<string, "neutral" | "blue" | "green" | "red"> = {
+const statusTone: Record<string, "neutral" | "blue" | "green" | "red" | "purple"> = {
+  estimate: "purple",
   draft: "neutral",
   sent: "blue",
   paid: "green",
@@ -31,7 +32,8 @@ export default async function InvoicesPage() {
         subtitle={`${invoices.length} invoices`}
       />
       <main className="flex-1 space-y-4 overflow-y-auto p-4 sm:p-6">
-        <div className="flex justify-end">
+        <div className="flex justify-end gap-2">
+          <CreateInvoiceButton customers={customers} vehicles={vehicles} mode="estimate" />
           <CreateInvoiceButton customers={customers} vehicles={vehicles} />
         </div>
         <Card>

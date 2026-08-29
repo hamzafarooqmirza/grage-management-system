@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "./server";
-import type { InvoiceStatus, JobStatus, JobType } from "@/lib/types";
+import type { InvoiceStatus, JobPriority, JobStatus, JobType } from "@/lib/types";
 import { JOB_TYPE_LABELS } from "@/lib/job-types";
 
 export interface MutationResult {
@@ -88,6 +88,7 @@ export async function addBooking(input: {
   jobType: JobType;
   date: string;
   estPrice?: number;
+  priority?: JobPriority;
   notes?: string;
 }): Promise<MutationResult> {
   const supabase = await createClient();
@@ -112,6 +113,7 @@ export async function addBooking(input: {
     booking_id: booking.id,
     customer_id: input.customerId,
     status: "booked",
+    priority: input.priority ?? "medium",
     description: JOB_TYPE_LABELS[input.jobType],
     due_date: input.date,
     notes: input.notes || null,
@@ -134,6 +136,25 @@ export async function updateJobStatus(
   const { error } = await supabase
     .from("job_cards")
     .update({ status })
+    .eq("id", id);
+
+  if (error) return { error: error.message };
+
+  revalidatePath("/jobs");
+  revalidatePath(`/jobs/${id}`);
+  revalidatePath("/");
+  return {};
+}
+
+export async function updateJobPriority(
+  id: string,
+  priority: JobPriority
+): Promise<MutationResult> {
+  const supabase = await createClient();
+
+  const { error } = await supabase
+    .from("job_cards")
+    .update({ priority })
     .eq("id", id);
 
   if (error) return { error: error.message };
@@ -236,6 +257,23 @@ export async function updateInvoice(
       );
     if (lineItemsError) return { error: lineItemsError.message };
   }
+
+  revalidatePath("/invoices");
+  revalidatePath(`/invoices/${id}`);
+  revalidatePath("/");
+  return {};
+}
+
+export async function convertEstimateToInvoice(id: string): Promise<MutationResult> {
+  const supabase = await createClient();
+
+  const { error } = await supabase
+    .from("invoices")
+    .update({ status: "sent" })
+    .eq("id", id)
+    .eq("status", "estimate");
+
+  if (error) return { error: error.message };
 
   revalidatePath("/invoices");
   revalidatePath(`/invoices/${id}`);

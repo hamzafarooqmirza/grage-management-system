@@ -7,6 +7,7 @@ import { jobLineTotal } from "@/lib/totals";
 import { formatCurrency, formatDate } from "@/lib/format";
 import { ArrowLeft } from "lucide-react";
 import { JobStatusSelect } from "@/components/jobs/JobStatusSelect";
+import { JobPrioritySelect } from "@/components/jobs/JobPrioritySelect";
 
 export default async function JobDetailPage({
   params,
@@ -66,7 +67,10 @@ export default async function JobDetailPage({
           <Card>
             <CardHeader title="Job status" />
             <CardBody className="space-y-2 text-sm">
-              <JobStatusSelect jobId={job.id} status={job.status} />
+              <div className="flex flex-wrap gap-2">
+                <JobStatusSelect jobId={job.id} status={job.status} />
+                <JobPrioritySelect jobId={job.id} priority={job.priority} />
+              </div>
               <p className="text-slate-500">
                 Technician: {job.technician ?? "Unassigned"}
               </p>
@@ -75,6 +79,9 @@ export default async function JobDetailPage({
               </p>
               <p className="text-slate-500">
                 Due: {job.dueDate ? formatDate(job.dueDate) : "—"}
+              </p>
+              <p className="text-slate-500">
+                Items: {job.labourLines.length + job.partLines.length}
               </p>
               {job.notes ? (
                 <p className="mt-2 rounded-lg bg-amber-50 px-3 py-2 text-amber-800">

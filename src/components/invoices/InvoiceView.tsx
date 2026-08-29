@@ -2,9 +2,11 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { ArrowLeft, Download, Loader2 } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { ArrowLeft, ArrowRightLeft, Download, Loader2 } from "lucide-react";
 import { InvoicePaper, A4_WIDTH_PX, A4_HEIGHT_PX } from "./InvoicePaper";
 import { EditInvoiceButton } from "@/components/forms/EditInvoiceModal";
+import { convertEstimateToInvoice } from "@/lib/supabase/mutations";
 import type { Customer, Invoice, Vehicle } from "@/lib/types";
 
 interface InvoiceViewProps {
@@ -24,10 +26,26 @@ export function InvoiceView({
   customers,
   vehicles,
 }: InvoiceViewProps) {
+  const router = useRouter();
   const containerRef = useRef<HTMLDivElement>(null);
   const paperRef = useRef<HTMLDivElement>(null);
   const [scale, setScale] = useState<number | null>(null);
   const [downloading, setDownloading] = useState(false);
+  const [converting, setConverting] = useState(false);
+  const [convertError, setConvertError] = useState<string | null>(null);
+
+  async function handleConvert() {
+    if (converting) return;
+    setConverting(true);
+    setConvertError(null);
+    const result = await convertEstimateToInvoice(invoice.id);
+    setConverting(false);
+    if (result.error) {
+      setConvertError(result.error);
+      return;
+    }
+    router.refresh();
+  }
 
   useEffect(() => {
     const el = containerRef.current;
@@ -90,6 +108,21 @@ export function InvoiceView({
         </Link>
         <div className="flex gap-2">
           <EditInvoiceButton invoice={invoice} customers={customers} vehicles={vehicles} />
+          {invoice.status === "estimate" ? (
+            <button
+              type="button"
+              onClick={handleConvert}
+              disabled={converting}
+              className="flex items-center justify-center gap-2 rounded-lg border border-violet-200 bg-violet-50 px-3 py-2 text-sm font-medium text-violet-700 transition-colors hover:bg-violet-100 disabled:opacity-60"
+            >
+              {converting ? (
+                <Loader2 size={15} className="animate-spin" />
+              ) : (
+                <ArrowRightLeft size={15} />
+              )}
+              {converting ? "Converting..." : "Convert to Invoice"}
+            </button>
+          ) : null}
           <button
             type="button"
             onClick={handleDownload}
@@ -105,6 +138,12 @@ export function InvoiceView({
           </button>
         </div>
       </div>
+
+      {convertError ? (
+        <p className="rounded-lg bg-rose-50 px-3 py-2 text-sm text-rose-700">
+          {convertError}
+        </p>
+      ) : null}
 
       <div ref={containerRef} className="w-full">
         {scale === null ? (

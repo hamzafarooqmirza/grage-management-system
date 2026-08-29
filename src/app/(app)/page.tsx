@@ -13,16 +13,9 @@ import {
 import { invoiceTotals } from "@/lib/totals";
 import { formatCurrency, formatDate, daysUntil } from "@/lib/format";
 import { JOB_TYPE_LABELS, JOB_TYPE_TONE } from "@/lib/job-types";
+import { JOB_STATUS_LABELS, JOB_STATUS_TONE } from "@/lib/job-status";
 import { CalendarClock, Users, Wrench, Boxes } from "lucide-react";
 import Link from "next/link";
-
-const statusTone: Record<string, "neutral" | "blue" | "green" | "amber" | "red" | "purple"> = {
-  booked: "blue",
-  in_progress: "amber",
-  awaiting_parts: "purple",
-  completed: "green",
-  invoiced: "neutral",
-};
 
 function today(): string {
   return new Date().toISOString().slice(0, 10);
@@ -49,7 +42,10 @@ export default async function DashboardPage() {
     .sort((a, b) => (a.time ?? "").localeCompare(b.time ?? ""));
 
   const openJobs = jobCards.filter(
-    (j) => j.status !== "invoiced" && j.status !== "completed"
+    (j) =>
+      j.status !== "invoiced" &&
+      j.status !== "completed" &&
+      j.status !== "vehicle_released"
   );
 
   const outstandingInvoices = invoices.filter(
@@ -248,8 +244,8 @@ export default async function DashboardPage() {
                           {job.technician ?? "Unassigned"}
                         </p>
                       </div>
-                      <Badge tone={statusTone[job.status]} className="capitalize">
-                        {job.status.replace("_", " ")}
+                      <Badge tone={JOB_STATUS_TONE[job.status]}>
+                        {JOB_STATUS_LABELS[job.status]}
                       </Badge>
                     </div>
                   );
