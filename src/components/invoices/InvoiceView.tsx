@@ -32,12 +32,18 @@ export function InvoiceView({
   const [scale, setScale] = useState<number | null>(null);
   const [downloading, setDownloading] = useState(false);
   const [converting, setConverting] = useState(false);
+  const [convertError, setConvertError] = useState<string | null>(null);
 
   async function handleConvert() {
     if (converting) return;
     setConverting(true);
-    await convertEstimateToInvoice(invoice.id);
+    setConvertError(null);
+    const result = await convertEstimateToInvoice(invoice.id);
     setConverting(false);
+    if (result.error) {
+      setConvertError(result.error);
+      return;
+    }
     router.refresh();
   }
 
@@ -132,6 +138,12 @@ export function InvoiceView({
           </button>
         </div>
       </div>
+
+      {convertError ? (
+        <p className="rounded-lg bg-rose-50 px-3 py-2 text-sm text-rose-700">
+          {convertError}
+        </p>
+      ) : null}
 
       <div ref={containerRef} className="w-full">
         {scale === null ? (

@@ -80,16 +80,16 @@ export default async function ReportsPage() {
       .reduce((sum, inv) => sum + invoiceTotals(inv).total, 0);
   const thisMonthRevenue = revenueForMonth(thisMonthKey);
   const lastMonthRevenue = revenueForMonth(lastMonthKey);
-  const momChange =
-    lastMonthRevenue > 0
-      ? ((thisMonthRevenue - lastMonthRevenue) / lastMonthRevenue) * 100
-      : thisMonthRevenue > 0
-        ? 100
-        : 0;
   const momHint =
-    lastMonthRevenue === 0 && thisMonthRevenue === 0
-      ? "No revenue recorded yet"
-      : `${momChange >= 0 ? "+" : ""}${momChange.toFixed(0)}% vs last month`;
+    lastMonthRevenue === 0
+      ? thisMonthRevenue > 0
+        ? "New revenue this month"
+        : "No revenue recorded yet"
+      : (() => {
+          const momChange =
+            ((thisMonthRevenue - lastMonthRevenue) / lastMonthRevenue) * 100;
+          return `${momChange >= 0 ? "+" : ""}${momChange.toFixed(0)}% vs last month`;
+        })();
 
   // Top customers by billed total (paid + sent + overdue).
   const revenueByCustomer = new Map<string, number>();
@@ -111,18 +111,20 @@ export default async function ReportsPage() {
     .slice(0, 5);
   const maxCustomerRevenue = Math.max(1, ...topCustomers.map((c) => c.total));
 
-  // Top parts by usage across all job cards.
+  // Top parts by usage across all job cards, grouped by part identity (not
+  // description, since two distinct parts can share a name).
   const partUsage = new Map<string, { description: string; quantity: number; revenue: number }>();
   for (const job of jobCards) {
     for (const line of job.partLines) {
-      const key = line.description;
-      const existing = partUsage.get(key) ?? { description: key, quantity: 0, revenue: 0 };
+      const key = line.partId ?? `adhoc:${line.description}`;
+      const existing = partUsage.get(key) ?? { description: line.description, quantity: 0, revenue: 0 };
       existing.quantity += line.quantity;
       existing.revenue += line.quantity * line.unitPrice;
       partUsage.set(key, existing);
     }
   }
-  const topParts = [...partUsage.values()]
+  const topParts = [...partUsage.entries()]
+    .map(([key, usage]) => ({ key, ...usage }))
     .sort((a, b) => b.quantity - a.quantity)
     .slice(0, 5);
   const maxPartQuantity = Math.max(1, ...topParts.map((p) => p.quantity));
@@ -254,7 +256,7 @@ export default async function ReportsPage() {
                 </p>
               ) : (
                 topParts.map((p) => (
-                  <div key={p.description}>
+                  <div key={p.key}>
                     <div className="mb-1 flex items-center justify-between text-xs">
                       <span className="text-slate-600">{p.description}</span>
                       <span className="text-slate-400">
