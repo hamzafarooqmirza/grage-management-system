@@ -59,6 +59,61 @@ export async function addCustomer(input: {
   return {};
 }
 
+export async function deleteCustomer(id: string): Promise<MutationResult> {
+  const supabase = await createClient();
+  const garageId = await getCurrentGarageId();
+
+  const [vehicles, bookings, jobs, invoices] = await Promise.all([
+    supabase
+      .from("vehicles")
+      .select("id", { count: "exact", head: true })
+      .eq("customer_id", id)
+      .eq("garage_id", garageId),
+    supabase
+      .from("bookings")
+      .select("id", { count: "exact", head: true })
+      .eq("customer_id", id)
+      .eq("garage_id", garageId),
+    supabase
+      .from("job_cards")
+      .select("id", { count: "exact", head: true })
+      .eq("customer_id", id)
+      .eq("garage_id", garageId),
+    supabase
+      .from("invoices")
+      .select("id", { count: "exact", head: true })
+      .eq("customer_id", id)
+      .eq("garage_id", garageId),
+  ]);
+
+  const countError = vehicles.error ?? bookings.error ?? jobs.error ?? invoices.error;
+  if (countError) return { error: countError.message };
+
+  if (
+    (vehicles.count ?? 0) > 0 ||
+    (bookings.count ?? 0) > 0 ||
+    (jobs.count ?? 0) > 0 ||
+    (invoices.count ?? 0) > 0
+  ) {
+    return {
+      error:
+        "Can't delete this customer while they still have vehicles, bookings, jobs, or invoices on record. Remove those first.",
+    };
+  }
+
+  const { error } = await supabase
+    .from("customers")
+    .delete()
+    .eq("id", id)
+    .eq("garage_id", garageId);
+
+  if (error) return { error: error.message };
+
+  revalidatePath("/customers");
+  revalidatePath("/");
+  return {};
+}
+
 export async function updateCustomer(
   id: string,
   input: {
@@ -101,10 +156,14 @@ export async function addBooking(input: {
   date: string;
   estPrice?: number;
   priority?: JobPriority;
+  technician?: string;
+  bay?: string;
   notes?: string;
 }): Promise<MutationResult> {
   const supabase = await createClient();
   const garageId = await getCurrentGarageId();
+  const technician = input.technician?.trim() || null;
+  const bay = input.bay?.trim() || null;
 
   const { data: booking, error } = await supabase
     .from("bookings")
@@ -114,6 +173,8 @@ export async function addBooking(input: {
       job_type: input.jobType,
       date: input.date,
       est_price: input.estPrice ?? null,
+      technician,
+      bay,
       notes: input.notes || null,
     })
     .select("id")
@@ -129,12 +190,39 @@ export async function addBooking(input: {
     customer_id: input.customerId,
     status: "booked",
     priority: input.priority ?? "medium",
+    technician,
     description: JOB_TYPE_LABELS[input.jobType],
     due_date: input.date,
     notes: input.notes || null,
   });
 
   if (jobError) return { error: jobError.message };
+
+  revalidatePath("/diary");
+  revalidatePath("/jobs");
+  revalidatePath("/");
+  return {};
+}
+
+export async function deleteBooking(id: string): Promise<MutationResult> {
+  const supabase = await createClient();
+  const garageId = await getCurrentGarageId();
+
+  const { error: unlinkError } = await supabase
+    .from("job_cards")
+    .update({ booking_id: null })
+    .eq("booking_id", id)
+    .eq("garage_id", garageId);
+
+  if (unlinkError) return { error: unlinkError.message };
+
+  const { error } = await supabase
+    .from("bookings")
+    .delete()
+    .eq("id", id)
+    .eq("garage_id", garageId);
+
+  if (error) return { error: error.message };
 
   revalidatePath("/diary");
   revalidatePath("/jobs");
@@ -180,6 +268,146 @@ export async function updateJobPriority(
 
   revalidatePath("/jobs");
   revalidatePath(`/jobs/${id}`);
+  revalidatePath("/");
+  return {};
+}
+
+export async function updateJobTechnician(
+  id: string,
+  technician: string | null
+): Promise<MutationResult> {
+  const supabase = await createClient();
+  const garageId = await getCurrentGarageId();
+
+  const { error } = await supabase
+    .from("job_cards")
+    .update({ technician: technician?.trim() || null })
+    .eq("id", id)
+    .eq("garage_id", garageId);
+
+  if (error) return { error: error.message };
+
+  revalidatePath("/jobs");
+  revalidatePath(`/jobs/${id}`);
+  revalidatePath("/");
+  return {};
+}
+
+export interface JobLinesInput {
+  labourLines: { description: string; hours: number; rate: number }[];
+  partLines: {
+    partId?: string | null;
+    description: string;
+    quantity: number;
+    unitPrice: number;
+  }[];
+}
+
+export async function updateJobLines(
+  jobId: string,
+  input: JobLinesInput
+): Promise<MutationResult> {
+  const supabase = await createClient();
+  const garageId = await getCurrentGarageId();
+
+  const { data: job, error: jobError } = await supabase
+    .from("job_cards")
+    .select("id")
+    .eq("id", jobId)
+    .eq("garage_id", garageId)
+    .maybeSingle();
+
+  if (jobError) return { error: jobError.message };
+  if (!job) return { error: "Job not found." };
+
+  const { error: deleteLabourError } = await supabase
+    .from("job_labour_lines")
+    .delete()
+    .eq("job_id", jobId)
+    .eq("garage_id", garageId);
+
+  if (deleteLabourError) return { error: deleteLabourError.message };
+
+  const { error: deletePartsError } = await supabase
+    .from("job_part_lines")
+    .delete()
+    .eq("job_id", jobId)
+    .eq("garage_id", garageId);
+
+  if (deletePartsError) return { error: deletePartsError.message };
+
+  const labourLines = input.labourLines.filter((l) => l.description.trim());
+  if (labourLines.length > 0) {
+    const { error } = await supabase.from("job_labour_lines").insert(
+      labourLines.map((l) => ({
+        garage_id: garageId,
+        job_id: jobId,
+        description: l.description,
+        hours: l.hours,
+        rate: l.rate,
+      }))
+    );
+    if (error) return { error: error.message };
+  }
+
+  const partLines = input.partLines.filter((l) => l.description.trim());
+  if (partLines.length > 0) {
+    const { error } = await supabase.from("job_part_lines").insert(
+      partLines.map((l) => ({
+        garage_id: garageId,
+        job_id: jobId,
+        part_id: l.partId || null,
+        description: l.description,
+        quantity: l.quantity,
+        unit_price: l.unitPrice,
+      }))
+    );
+    if (error) return { error: error.message };
+  }
+
+  revalidatePath("/jobs");
+  revalidatePath(`/jobs/${jobId}`);
+  revalidatePath("/");
+  return {};
+}
+
+export async function deleteJobCard(id: string): Promise<MutationResult> {
+  const supabase = await createClient();
+  const garageId = await getCurrentGarageId();
+
+  const { error: labourError } = await supabase
+    .from("job_labour_lines")
+    .delete()
+    .eq("job_id", id)
+    .eq("garage_id", garageId);
+
+  if (labourError) return { error: labourError.message };
+
+  const { error: partsError } = await supabase
+    .from("job_part_lines")
+    .delete()
+    .eq("job_id", id)
+    .eq("garage_id", garageId);
+
+  if (partsError) return { error: partsError.message };
+
+  const { error: unlinkError } = await supabase
+    .from("invoices")
+    .update({ job_id: null })
+    .eq("job_id", id)
+    .eq("garage_id", garageId);
+
+  if (unlinkError) return { error: unlinkError.message };
+
+  const { error } = await supabase
+    .from("job_cards")
+    .delete()
+    .eq("id", id)
+    .eq("garage_id", garageId);
+
+  if (error) return { error: error.message };
+
+  revalidatePath("/jobs");
   revalidatePath("/");
   return {};
 }
@@ -309,6 +537,31 @@ export async function convertEstimateToInvoice(id: string): Promise<MutationResu
   return {};
 }
 
+export async function deleteInvoice(id: string): Promise<MutationResult> {
+  const supabase = await createClient();
+  const garageId = await getCurrentGarageId();
+
+  const { error: lineItemsError } = await supabase
+    .from("invoice_line_items")
+    .delete()
+    .eq("invoice_id", id)
+    .eq("garage_id", garageId);
+
+  if (lineItemsError) return { error: lineItemsError.message };
+
+  const { error } = await supabase
+    .from("invoices")
+    .delete()
+    .eq("id", id)
+    .eq("garage_id", garageId);
+
+  if (error) return { error: error.message };
+
+  revalidatePath("/invoices");
+  revalidatePath("/");
+  return {};
+}
+
 export interface PartInput {
   sku: string;
   name: string;
@@ -372,6 +625,23 @@ export async function updatePart(
   return {};
 }
 
+export async function deletePart(id: string): Promise<MutationResult> {
+  const supabase = await createClient();
+  const garageId = await getCurrentGarageId();
+
+  const { error } = await supabase
+    .from("parts")
+    .delete()
+    .eq("id", id)
+    .eq("garage_id", garageId);
+
+  if (error) return { error: error.message };
+
+  revalidatePath("/inventory");
+  revalidatePath("/");
+  return {};
+}
+
 export interface EmployeeInput {
   fullName: string;
   role: EmployeeRole;
@@ -418,6 +688,22 @@ export async function updateEmployee(
       hourly_rate: input.hourlyRate,
       active: input.active,
     })
+    .eq("id", id)
+    .eq("garage_id", garageId);
+
+  if (error) return { error: error.message };
+
+  revalidatePath("/employees");
+  return {};
+}
+
+export async function deleteEmployee(id: string): Promise<MutationResult> {
+  const supabase = await createClient();
+  const garageId = await getCurrentGarageId();
+
+  const { error } = await supabase
+    .from("employees")
+    .delete()
     .eq("id", id)
     .eq("garage_id", garageId);
 

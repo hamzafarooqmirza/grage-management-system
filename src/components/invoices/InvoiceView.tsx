@@ -6,7 +6,8 @@ import { useRouter } from "next/navigation";
 import { ArrowLeft, ArrowRightLeft, Download, Loader2 } from "lucide-react";
 import { InvoicePaper, A4_WIDTH_PX, A4_HEIGHT_PX } from "./InvoicePaper";
 import { EditInvoiceButton } from "@/components/forms/EditInvoiceModal";
-import { convertEstimateToInvoice } from "@/lib/supabase/mutations";
+import { DeleteButton } from "@/components/ui/DeleteButton";
+import { convertEstimateToInvoice, deleteInvoice } from "@/lib/supabase/mutations";
 import type { Customer, GarageSettings, Invoice, Vehicle } from "@/lib/types";
 
 interface InvoiceViewProps {
@@ -108,8 +109,15 @@ export function InvoiceView({
         >
           <ArrowLeft size={15} /> Back to invoices
         </Link>
-        <div className="flex gap-2">
+        <div className="flex items-center gap-2">
           <EditInvoiceButton invoice={invoice} customers={customers} vehicles={vehicles} />
+          <DeleteButton
+            id={invoice.id}
+            action={deleteInvoice}
+            label={`Delete ${invoice.number}`}
+            confirmMessage={`Delete invoice ${invoice.number}? This cannot be undone.`}
+            redirectTo="/invoices"
+          />
           {invoice.status === "estimate" ? (
             <button
               type="button"

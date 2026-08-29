@@ -1,7 +1,9 @@
 import Link from "next/link";
 import { TopBar } from "@/components/layout/TopBar";
 import { Card } from "@/components/ui/Card";
+import { DeleteButton } from "@/components/ui/DeleteButton";
 import { getCustomers, getVehicles } from "@/lib/supabase/queries";
+import { deleteCustomer } from "@/lib/supabase/mutations";
 import { formatDate } from "@/lib/format";
 import { AddCustomerButton } from "@/components/forms/AddCustomerModal";
 
@@ -38,6 +40,7 @@ export default async function CustomersPage() {
                 <th className="px-5 py-3 font-medium">Contact</th>
                 <th className="px-5 py-3 font-medium">Vehicles</th>
                 <th className="px-5 py-3 font-medium">Customer since</th>
+                <th className="px-5 py-3 text-right font-medium">Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -66,12 +69,20 @@ export default async function CustomersPage() {
                     <td className="px-5 py-3 text-slate-500">
                       {formatDate(c.createdAt)}
                     </td>
+                    <td className="px-5 py-3 text-right">
+                      <DeleteButton
+                        id={c.id}
+                        action={deleteCustomer}
+                        label={`Delete ${c.name}`}
+                        confirmMessage={`Delete ${c.name}? This cannot be undone.`}
+                      />
+                    </td>
                   </tr>
                 );
               })}
               {customers.length === 0 ? (
                 <tr>
-                  <td colSpan={4} className="px-5 py-6 text-center text-sm text-slate-400">
+                  <td colSpan={5} className="px-5 py-6 text-center text-sm text-slate-400">
                     No customers yet. Click &ldquo;New customer&rdquo; to add one.
                   </td>
                 </tr>

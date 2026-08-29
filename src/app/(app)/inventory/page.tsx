@@ -1,7 +1,9 @@
 import { TopBar } from "@/components/layout/TopBar";
 import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
+import { DeleteButton } from "@/components/ui/DeleteButton";
 import { getParts } from "@/lib/supabase/queries";
+import { deletePart } from "@/lib/supabase/mutations";
 import { formatCurrency } from "@/lib/format";
 import { AddPartButton } from "@/components/forms/AddPartModal";
 import { EditPartButton } from "@/components/forms/EditPartModal";
@@ -77,7 +79,15 @@ export default async function InventoryPage() {
                       )}
                     </td>
                     <td className="px-5 py-3 text-right">
-                      <EditPartButton part={p} />
+                      <div className="flex items-center justify-end gap-1">
+                        <EditPartButton part={p} />
+                        <DeleteButton
+                          id={p.id}
+                          action={deletePart}
+                          label={`Delete ${p.name}`}
+                          confirmMessage={`Delete ${p.name}? This cannot be undone.`}
+                        />
+                      </div>
                     </td>
                   </tr>
                 );
