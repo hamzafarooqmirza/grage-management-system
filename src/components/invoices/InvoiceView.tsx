@@ -7,7 +7,7 @@ import { ArrowLeft, ArrowRightLeft, Download, Loader2 } from "lucide-react";
 import { InvoicePaper, A4_WIDTH_PX, A4_HEIGHT_PX } from "./InvoicePaper";
 import { EditInvoiceButton } from "@/components/forms/EditInvoiceModal";
 import { convertEstimateToInvoice } from "@/lib/supabase/mutations";
-import type { Customer, Invoice, Vehicle } from "@/lib/types";
+import type { Customer, GarageSettings, Invoice, Vehicle } from "@/lib/types";
 
 interface InvoiceViewProps {
   invoice: Invoice;
@@ -16,6 +16,7 @@ interface InvoiceViewProps {
   totals: { subtotal: number; vat: number; total: number };
   customers: Customer[];
   vehicles: Vehicle[];
+  garage?: GarageSettings;
 }
 
 export function InvoiceView({
@@ -25,6 +26,7 @@ export function InvoiceView({
   totals,
   customers,
   vehicles,
+  garage,
 }: InvoiceViewProps) {
   const router = useRouter();
   const containerRef = useRef<HTMLDivElement>(null);
@@ -157,7 +159,7 @@ export function InvoiceView({
             style={{ width: A4_WIDTH_PX * scale, height: A4_HEIGHT_PX * scale }}
           >
             <div style={{ width: A4_WIDTH_PX, transform: `scale(${scale})`, transformOrigin: "top left" }}>
-              <InvoicePaper invoice={invoice} customer={customer} vehicle={vehicle} totals={totals} />
+              <InvoicePaper invoice={invoice} customer={customer} vehicle={vehicle} totals={totals} garage={garage} />
             </div>
           </div>
         )}
@@ -166,7 +168,7 @@ export function InvoiceView({
       {/* Full-size, untransformed copy used only for PDF capture — kept off-screen
           so the visible preview's CSS scaling never affects export quality/sizing. */}
       <div style={{ position: "fixed", top: 0, left: -9999, pointerEvents: "none" }} aria-hidden="true">
-        <InvoicePaper ref={paperRef} invoice={invoice} customer={customer} vehicle={vehicle} totals={totals} />
+        <InvoicePaper ref={paperRef} invoice={invoice} customer={customer} vehicle={vehicle} totals={totals} garage={garage} />
       </div>
     </>
   );

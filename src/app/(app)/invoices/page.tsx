@@ -2,7 +2,7 @@ import Link from "next/link";
 import { TopBar } from "@/components/layout/TopBar";
 import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
-import { getCustomers, getInvoices, getVehicles } from "@/lib/supabase/queries";
+import { getCustomers, getGarageSettings, getInvoices, getVehicles } from "@/lib/supabase/queries";
 import { invoiceTotals } from "@/lib/totals";
 import { formatCurrency, formatDate } from "@/lib/format";
 import { CreateInvoiceButton } from "@/components/forms/CreateInvoiceModal";
@@ -16,10 +16,11 @@ const statusTone: Record<string, "neutral" | "blue" | "green" | "red" | "purple"
 };
 
 export default async function InvoicesPage() {
-  const [invoices, customers, vehicles] = await Promise.all([
+  const [invoices, customers, vehicles, garage] = await Promise.all([
     getInvoices(),
     getCustomers(),
     getVehicles(),
+    getGarageSettings(),
   ]);
 
   const customerById = new Map(customers.map((c) => [c.id, c]));
@@ -33,8 +34,17 @@ export default async function InvoicesPage() {
       />
       <main className="flex-1 space-y-4 overflow-y-auto p-4 sm:p-6">
         <div className="flex justify-end gap-2">
-          <CreateInvoiceButton customers={customers} vehicles={vehicles} mode="estimate" />
-          <CreateInvoiceButton customers={customers} vehicles={vehicles} />
+          <CreateInvoiceButton
+            customers={customers}
+            vehicles={vehicles}
+            mode="estimate"
+            defaultVatRate={garage.defaultVatRate}
+          />
+          <CreateInvoiceButton
+            customers={customers}
+            vehicles={vehicles}
+            defaultVatRate={garage.defaultVatRate}
+          />
         </div>
         <Card>
           <div className="overflow-x-auto">

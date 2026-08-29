@@ -19,6 +19,8 @@ import { addInvoice } from "@/lib/supabase/mutations";
 import { formatCurrency } from "@/lib/format";
 import type { Customer, Vehicle } from "@/lib/types";
 
+const DEFAULT_VAT_RATE = 20;
+
 interface DraftLineItem {
   id: string;
   description: string;
@@ -36,16 +38,18 @@ export function CreateInvoiceButton({
   customers,
   vehicles,
   mode = "invoice",
+  defaultVatRate = DEFAULT_VAT_RATE,
 }: {
   customers: Customer[];
   vehicles: Vehicle[];
   mode?: "invoice" | "estimate";
+  defaultVatRate?: number;
 }) {
   const isEstimate = mode === "estimate";
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [customerId, setCustomerId] = useState("");
-  const [vatRate, setVatRate] = useState(20);
+  const [vatRate, setVatRate] = useState(defaultVatRate);
   const [lineItems, setLineItems] = useState<DraftLineItem[]>([newLineItem()]);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -73,7 +77,7 @@ export function CreateInvoiceButton({
 
   function reset() {
     setCustomerId("");
-    setVatRate(20);
+    setVatRate(defaultVatRate);
     setLineItems([newLineItem()]);
   }
 

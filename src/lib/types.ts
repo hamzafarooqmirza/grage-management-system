@@ -126,3 +126,43 @@ export interface Part {
   costPrice: number;
   sellPrice: number;
 }
+
+export type EmployeeRole =
+  | "technician"
+  | "service_advisor"
+  | "manager"
+  | "apprentice"
+  | "other";
+
+export interface Employee {
+  id: string;
+  fullName: string;
+  role: EmployeeRole;
+  email: string | null;
+  phone: string | null;
+  hourlyRate: number;
+  active: boolean;
+  createdAt: string;
+}
+
+export interface Reminder {
+  id: string;
+  customerId: string | null;
+  vehicleId: string | null;
+  title: string;
+  dueDate: string;
+  done: boolean;
+  notes: string | null;
+  createdAt: string;
+}
+
+export interface GarageSettings {
+  id: string;
+  garageName: string;
+  addressLine: string;
+  city: string;
+  postCode: string;
+  vatNumber: string;
+  defaultVatRate: number;
+  invoicePrefix: string;
+}

@@ -2,7 +2,13 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "./server";
-import type { InvoiceStatus, JobPriority, JobStatus, JobType } from "@/lib/types";
+import type {
+  EmployeeRole,
+  InvoiceStatus,
+  JobPriority,
+  JobStatus,
+  JobType,
+} from "@/lib/types";
 import { JOB_TYPE_LABELS } from "@/lib/job-types";
 
 export interface MutationResult {
@@ -336,6 +342,150 @@ export async function updatePart(
   if (error) return { error: error.message };
 
   revalidatePath("/inventory");
+  revalidatePath("/");
+  return {};
+}
+
+export interface EmployeeInput {
+  fullName: string;
+  role: EmployeeRole;
+  email?: string;
+  phone?: string;
+  hourlyRate: number;
+  active: boolean;
+}
+
+export async function addEmployee(input: EmployeeInput): Promise<MutationResult> {
+  const supabase = await createClient();
+
+  const { error } = await supabase.from("employees").insert({
+    full_name: input.fullName,
+    role: input.role,
+    email: input.email || null,
+    phone: input.phone || null,
+    hourly_rate: input.hourlyRate,
+    active: input.active,
+  });
+
+  if (error) return { error: error.message };
+
+  revalidatePath("/employees");
+  return {};
+}
+
+export async function updateEmployee(
+  id: string,
+  input: EmployeeInput
+): Promise<MutationResult> {
+  const supabase = await createClient();
+
+  const { error } = await supabase
+    .from("employees")
+    .update({
+      full_name: input.fullName,
+      role: input.role,
+      email: input.email || null,
+      phone: input.phone || null,
+      hourly_rate: input.hourlyRate,
+      active: input.active,
+    })
+    .eq("id", id);
+
+  if (error) return { error: error.message };
+
+  revalidatePath("/employees");
+  return {};
+}
+
+export interface ReminderInput {
+  customerId?: string;
+  vehicleId?: string;
+  title: string;
+  dueDate: string;
+  notes?: string;
+}
+
+export async function addReminder(input: ReminderInput): Promise<MutationResult> {
+  const supabase = await createClient();
+
+  const { error } = await supabase.from("reminders").insert({
+    customer_id: input.customerId || null,
+    vehicle_id: input.vehicleId || null,
+    title: input.title,
+    due_date: input.dueDate,
+    notes: input.notes || null,
+  });
+
+  if (error) return { error: error.message };
+
+  revalidatePath("/reminders");
+  revalidatePath("/");
+  return {};
+}
+
+export async function toggleReminderDone(
+  id: string,
+  done: boolean
+): Promise<MutationResult> {
+  const supabase = await createClient();
+
+  const { error } = await supabase
+    .from("reminders")
+    .update({ done })
+    .eq("id", id);
+
+  if (error) return { error: error.message };
+
+  revalidatePath("/reminders");
+  revalidatePath("/");
+  return {};
+}
+
+export async function deleteReminder(id: string): Promise<MutationResult> {
+  const supabase = await createClient();
+
+  const { error } = await supabase.from("reminders").delete().eq("id", id);
+
+  if (error) return { error: error.message };
+
+  revalidatePath("/reminders");
+  revalidatePath("/");
+  return {};
+}
+
+export interface GarageSettingsInput {
+  garageName: string;
+  addressLine: string;
+  city: string;
+  postCode: string;
+  vatNumber: string;
+  defaultVatRate: number;
+  invoicePrefix: string;
+}
+
+export async function updateGarageSettings(
+  id: string,
+  input: GarageSettingsInput
+): Promise<MutationResult> {
+  const supabase = await createClient();
+
+  const payload = {
+    garage_name: input.garageName,
+    address_line: input.addressLine,
+    city: input.city,
+    post_code: input.postCode,
+    vat_number: input.vatNumber,
+    default_vat_rate: input.defaultVatRate,
+    invoice_prefix: input.invoicePrefix,
+  };
+
+  const { error } = id
+    ? await supabase.from("garage_settings").update(payload).eq("id", id)
+    : await supabase.from("garage_settings").insert(payload);
+
+  if (error) return { error: error.message };
+
+  revalidatePath("/settings");
   revalidatePath("/");
   return {};
 }

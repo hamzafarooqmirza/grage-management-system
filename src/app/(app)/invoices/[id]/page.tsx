@@ -3,6 +3,7 @@ import { TopBar } from "@/components/layout/TopBar";
 import {
   getCustomer,
   getCustomers,
+  getGarageSettings,
   getInvoice,
   getVehicle,
   getVehicles,
@@ -19,11 +20,12 @@ export default async function InvoiceDetailPage({
   const invoice = await getInvoice(id);
   if (!invoice) notFound();
 
-  const [customer, vehicle, customers, vehicles] = await Promise.all([
+  const [customer, vehicle, customers, vehicles, garage] = await Promise.all([
     getCustomer(invoice.customerId),
     invoice.vehicleId ? getVehicle(invoice.vehicleId) : Promise.resolve(undefined),
     getCustomers(),
     getVehicles(),
+    getGarageSettings(),
   ]);
   const totals = invoiceTotals(invoice);
 
@@ -38,6 +40,7 @@ export default async function InvoiceDetailPage({
           totals={totals}
           customers={customers}
           vehicles={vehicles}
+          garage={garage}
         />
       </main>
     </>

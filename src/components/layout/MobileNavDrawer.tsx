@@ -6,12 +6,13 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Car, X } from "lucide-react";
 import { cn } from "@/lib/cn";
-import { navItems } from "@/lib/nav-items";
+import { groupedNavItems } from "@/lib/nav-items";
 import { useNavDrawer } from "./NavDrawerContext";
 
 export function MobileNavDrawer() {
   const { isOpen, close } = useNavDrawer();
   const pathname = usePathname();
+  const groups = groupedNavItems();
 
   useEffect(() => {
     close();
@@ -55,26 +56,35 @@ export function MobileNavDrawer() {
             <X size={18} />
           </button>
         </div>
-        <nav className="flex-1 space-y-1 px-3">
-          {navItems.map((item) => {
-            const isActive =
-              item.href === "/" ? pathname === "/" : pathname.startsWith(item.href);
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={cn(
-                  "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
-                  isActive
-                    ? "bg-accent-600 text-white shadow-sm shadow-accent-600/30"
-                    : "text-slate-300 hover:bg-white/5 hover:text-white"
-                )}
-              >
-                <item.icon size={17} />
-                {item.label}
-              </Link>
-            );
-          })}
+        <nav className="flex-1 space-y-4 overflow-y-auto px-3 pb-4">
+          {groups.map((group, idx) => (
+            <div key={group.section ?? `group-${idx}`} className="space-y-1">
+              {group.section ? (
+                <p className="px-3 pb-1 pt-2 text-[11px] font-semibold uppercase tracking-wider text-slate-500">
+                  {group.section}
+                </p>
+              ) : null}
+              {group.items.map((item) => {
+                const isActive =
+                  item.href === "/" ? pathname === "/" : pathname.startsWith(item.href);
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    className={cn(
+                      "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
+                      isActive
+                        ? "bg-accent-600 text-white shadow-sm shadow-accent-600/30"
+                        : "text-slate-300 hover:bg-white/5 hover:text-white"
+                    )}
+                  >
+                    <item.icon size={17} />
+                    {item.label}
+                  </Link>
+                );
+              })}
+            </div>
+          ))}
         </nav>
         <div className="border-t border-white/10 px-5 py-4">
           <p className="text-xs text-slate-500">

@@ -111,6 +111,126 @@ export type Database = {
         }
         Relationships: []
       }
+      employees: {
+        Row: {
+          active: boolean
+          created_at: string
+          email: string | null
+          full_name: string
+          hourly_rate: number
+          id: string
+          phone: string | null
+          role: string
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          email?: string | null
+          full_name: string
+          hourly_rate?: number
+          id?: string
+          phone?: string | null
+          role?: string
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          email?: string | null
+          full_name?: string
+          hourly_rate?: number
+          id?: string
+          phone?: string | null
+          role?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      garage_settings: {
+        Row: {
+          address_line: string
+          city: string
+          default_vat_rate: number
+          garage_name: string
+          id: string
+          invoice_prefix: string
+          post_code: string
+          updated_at: string
+          vat_number: string
+        }
+        Insert: {
+          address_line?: string
+          city?: string
+          default_vat_rate?: number
+          garage_name?: string
+          id?: string
+          invoice_prefix?: string
+          post_code?: string
+          updated_at?: string
+          vat_number?: string
+        }
+        Update: {
+          address_line?: string
+          city?: string
+          default_vat_rate?: number
+          garage_name?: string
+          id?: string
+          invoice_prefix?: string
+          post_code?: string
+          updated_at?: string
+          vat_number?: string
+        }
+        Relationships: []
+      }
+      reminders: {
+        Row: {
+          created_at: string
+          customer_id: string | null
+          done: boolean
+          due_date: string
+          id: string
+          notes: string | null
+          title: string
+          vehicle_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          customer_id?: string | null
+          done?: boolean
+          due_date: string
+          id?: string
+          notes?: string | null
+          title: string
+          vehicle_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          customer_id?: string | null
+          done?: boolean
+          due_date?: string
+          id?: string
+          notes?: string | null
+          title?: string
+          vehicle_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reminders_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reminders_vehicle_id_fkey"
+            columns: ["vehicle_id"]
+            isOneToOne: false
+            referencedRelation: "vehicles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       invoice_line_items: {
         Row: {
           description: string

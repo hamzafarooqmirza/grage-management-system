@@ -3,12 +3,16 @@ import type { Tables } from "./database.types";
 import type {
   Booking,
   Customer,
+  Employee,
+  EmployeeRole,
+  GarageSettings,
   Invoice,
   InvoiceLineItem,
   JobCard,
   JobLabourLine,
   JobPartLine,
   Part,
+  Reminder,
   Vehicle,
 } from "@/lib/types";
 
@@ -16,6 +20,9 @@ type CustomerRow = Tables<"customers">;
 type VehicleRow = Tables<"vehicles">;
 type PartRow = Tables<"parts">;
 type BookingRow = Tables<"bookings">;
+type EmployeeRow = Tables<"employees">;
+type ReminderRow = Tables<"reminders">;
+type GarageSettingsRow = Tables<"garage_settings">;
 type JobCardRow = Tables<"job_cards"> & {
   job_labour_lines: Tables<"job_labour_lines">[];
   job_part_lines: Tables<"job_part_lines">[];
@@ -80,6 +87,45 @@ function mapBooking(row: BookingRow): Booking {
     technician: row.technician,
     estPrice: row.est_price,
     notes: row.notes,
+  };
+}
+
+function mapEmployee(row: EmployeeRow): Employee {
+  return {
+    id: row.id,
+    fullName: row.full_name,
+    role: row.role as EmployeeRole,
+    email: row.email,
+    phone: row.phone,
+    hourlyRate: row.hourly_rate,
+    active: row.active,
+    createdAt: row.created_at,
+  };
+}
+
+function mapReminder(row: ReminderRow): Reminder {
+  return {
+    id: row.id,
+    customerId: row.customer_id,
+    vehicleId: row.vehicle_id,
+    title: row.title,
+    dueDate: row.due_date,
+    done: row.done,
+    notes: row.notes,
+    createdAt: row.created_at,
+  };
+}
+
+function mapGarageSettings(row: GarageSettingsRow): GarageSettings {
+  return {
+    id: row.id,
+    garageName: row.garage_name,
+    addressLine: row.address_line,
+    city: row.city,
+    postCode: row.post_code,
+    vatNumber: row.vat_number,
+    defaultVatRate: row.default_vat_rate,
+    invoicePrefix: row.invoice_prefix,
   };
 }
 
@@ -323,4 +369,51 @@ export async function getInvoice(id: string): Promise<Invoice | undefined> {
     .maybeSingle();
   if (error) throw new Error(error.message);
   return data ? mapInvoice(data as InvoiceRow) : undefined;
+}
+
+// ---- Employees ----
+
+export async function getEmployees(): Promise<Employee[]> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("employees")
+    .select("*")
+    .order("full_name", { ascending: true });
+  if (error) throw new Error(error.message);
+  return (data ?? []).map(mapEmployee);
+}
+
+// ---- Reminders ----
+
+export async function getReminders(): Promise<Reminder[]> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("reminders")
+    .select("*")
+    .order("due_date", { ascending: true });
+  if (error) throw new Error(error.message);
+  return (data ?? []).map(mapReminder);
+}
+
+// ---- Garage settings ----
+
+export async function getGarageSettings(): Promise<GarageSettings> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("garage_settings")
+    .select("*")
+    .limit(1)
+    .maybeSingle();
+  if (error) throw new Error(error.message);
+  if (data) return mapGarageSettings(data);
+  return {
+    id: "",
+    garageName: "My Garage Ltd",
+    addressLine: "",
+    city: "",
+    postCode: "",
+    vatNumber: "",
+    defaultVatRate: 20,
+    invoicePrefix: "INV",
+  };
 }
