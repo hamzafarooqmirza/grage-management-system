@@ -1,4 +1,5 @@
 import { createClient } from "./server";
+import { getCurrentGarageId } from "./garage";
 import type { Tables } from "./database.types";
 import type {
   Booking,
@@ -199,9 +200,11 @@ const INVOICE_SELECT = "*, invoice_line_items(*)";
 
 export async function getCustomers(): Promise<Customer[]> {
   const supabase = await createClient();
+  const garageId = await getCurrentGarageId();
   const { data, error } = await supabase
     .from("customers")
     .select("*")
+    .eq("garage_id", garageId)
     .order("full_name", { ascending: true });
   if (error) throw new Error(error.message);
   return (data ?? []).map(mapCustomer);
@@ -209,10 +212,12 @@ export async function getCustomers(): Promise<Customer[]> {
 
 export async function getCustomer(id: string): Promise<Customer | undefined> {
   const supabase = await createClient();
+  const garageId = await getCurrentGarageId();
   const { data, error } = await supabase
     .from("customers")
     .select("*")
     .eq("id", id)
+    .eq("garage_id", garageId)
     .maybeSingle();
   if (error) throw new Error(error.message);
   return data ? mapCustomer(data) : undefined;
@@ -222,17 +227,23 @@ export async function getCustomer(id: string): Promise<Customer | undefined> {
 
 export async function getVehicles(): Promise<Vehicle[]> {
   const supabase = await createClient();
-  const { data, error } = await supabase.from("vehicles").select("*");
+  const garageId = await getCurrentGarageId();
+  const { data, error } = await supabase
+    .from("vehicles")
+    .select("*")
+    .eq("garage_id", garageId);
   if (error) throw new Error(error.message);
   return (data ?? []).map(mapVehicle);
 }
 
 export async function getVehicle(id: string): Promise<Vehicle | undefined> {
   const supabase = await createClient();
+  const garageId = await getCurrentGarageId();
   const { data, error } = await supabase
     .from("vehicles")
     .select("*")
     .eq("id", id)
+    .eq("garage_id", garageId)
     .maybeSingle();
   if (error) throw new Error(error.message);
   return data ? mapVehicle(data) : undefined;
@@ -242,10 +253,12 @@ export async function getVehiclesForCustomer(
   customerId: string
 ): Promise<Vehicle[]> {
   const supabase = await createClient();
+  const garageId = await getCurrentGarageId();
   const { data, error } = await supabase
     .from("vehicles")
     .select("*")
     .eq("customer_id", customerId)
+    .eq("garage_id", garageId)
     .order("created_at", { ascending: true });
   if (error) throw new Error(error.message);
   return (data ?? []).map(mapVehicle);
@@ -255,9 +268,11 @@ export async function getVehiclesForCustomer(
 
 export async function getParts(): Promise<Part[]> {
   const supabase = await createClient();
+  const garageId = await getCurrentGarageId();
   const { data, error } = await supabase
     .from("parts")
     .select("*")
+    .eq("garage_id", garageId)
     .order("name", { ascending: true });
   if (error) throw new Error(error.message);
   return (data ?? []).map(mapPart);
@@ -267,9 +282,11 @@ export async function getParts(): Promise<Part[]> {
 
 export async function getBookings(): Promise<Booking[]> {
   const supabase = await createClient();
+  const garageId = await getCurrentGarageId();
   const { data, error } = await supabase
     .from("bookings")
     .select("*")
+    .eq("garage_id", garageId)
     .order("date", { ascending: true });
   if (error) throw new Error(error.message);
   return (data ?? []).map(mapBooking);
@@ -279,10 +296,12 @@ export async function getBookingsForCustomer(
   customerId: string
 ): Promise<Booking[]> {
   const supabase = await createClient();
+  const garageId = await getCurrentGarageId();
   const { data, error } = await supabase
     .from("bookings")
     .select("*")
-    .eq("customer_id", customerId);
+    .eq("customer_id", customerId)
+    .eq("garage_id", garageId);
   if (error) throw new Error(error.message);
   return (data ?? []).map(mapBooking);
 }
@@ -291,13 +310,19 @@ export async function getBookingsForCustomer(
 
 export async function getJobCards(): Promise<JobCard[]> {
   const supabase = await createClient();
+  const garageId = await getCurrentGarageId();
   const [{ data, error }, { data: invoiceLinks, error: invError }] =
     await Promise.all([
       supabase
         .from("job_cards")
         .select(JOB_CARD_SELECT)
+        .eq("garage_id", garageId)
         .order("created_at", { ascending: false }),
-      supabase.from("invoices").select("id, job_id").not("job_id", "is", null),
+      supabase
+        .from("invoices")
+        .select("id, job_id")
+        .eq("garage_id", garageId)
+        .not("job_id", "is", null),
     ]);
   if (error) throw new Error(error.message);
   if (invError) throw new Error(invError.message);
@@ -315,10 +340,12 @@ export async function getJobsForCustomer(
   customerId: string
 ): Promise<JobCard[]> {
   const supabase = await createClient();
+  const garageId = await getCurrentGarageId();
   const { data, error } = await supabase
     .from("job_cards")
     .select(JOB_CARD_SELECT)
     .eq("customer_id", customerId)
+    .eq("garage_id", garageId)
     .order("created_at", { ascending: false });
   if (error) throw new Error(error.message);
   return (data ?? []).map((row) => mapJobCard(row as JobCardRow));
@@ -326,9 +353,20 @@ export async function getJobsForCustomer(
 
 export async function getJob(id: string): Promise<JobCard | undefined> {
   const supabase = await createClient();
+  const garageId = await getCurrentGarageId();
   const [{ data, error }, { data: invoiceLink }] = await Promise.all([
-    supabase.from("job_cards").select(JOB_CARD_SELECT).eq("id", id).maybeSingle(),
-    supabase.from("invoices").select("id").eq("job_id", id).maybeSingle(),
+    supabase
+      .from("job_cards")
+      .select(JOB_CARD_SELECT)
+      .eq("id", id)
+      .eq("garage_id", garageId)
+      .maybeSingle(),
+    supabase
+      .from("invoices")
+      .select("id")
+      .eq("job_id", id)
+      .eq("garage_id", garageId)
+      .maybeSingle(),
   ]);
   if (error) throw new Error(error.message);
   if (!data) return undefined;
@@ -339,9 +377,11 @@ export async function getJob(id: string): Promise<JobCard | undefined> {
 
 export async function getInvoices(): Promise<Invoice[]> {
   const supabase = await createClient();
+  const garageId = await getCurrentGarageId();
   const { data, error } = await supabase
     .from("invoices")
     .select(INVOICE_SELECT)
+    .eq("garage_id", garageId)
     .order("date", { ascending: false });
   if (error) throw new Error(error.message);
   return (data ?? []).map((row) => mapInvoice(row as InvoiceRow));
@@ -351,10 +391,12 @@ export async function getInvoicesForCustomer(
   customerId: string
 ): Promise<Invoice[]> {
   const supabase = await createClient();
+  const garageId = await getCurrentGarageId();
   const { data, error } = await supabase
     .from("invoices")
     .select(INVOICE_SELECT)
     .eq("customer_id", customerId)
+    .eq("garage_id", garageId)
     .order("date", { ascending: false });
   if (error) throw new Error(error.message);
   return (data ?? []).map((row) => mapInvoice(row as InvoiceRow));
@@ -362,10 +404,12 @@ export async function getInvoicesForCustomer(
 
 export async function getInvoice(id: string): Promise<Invoice | undefined> {
   const supabase = await createClient();
+  const garageId = await getCurrentGarageId();
   const { data, error } = await supabase
     .from("invoices")
     .select(INVOICE_SELECT)
     .eq("id", id)
+    .eq("garage_id", garageId)
     .maybeSingle();
   if (error) throw new Error(error.message);
   return data ? mapInvoice(data as InvoiceRow) : undefined;
@@ -375,9 +419,11 @@ export async function getInvoice(id: string): Promise<Invoice | undefined> {
 
 export async function getEmployees(): Promise<Employee[]> {
   const supabase = await createClient();
+  const garageId = await getCurrentGarageId();
   const { data, error } = await supabase
     .from("employees")
     .select("*")
+    .eq("garage_id", garageId)
     .order("full_name", { ascending: true });
   if (error) throw new Error(error.message);
   return (data ?? []).map(mapEmployee);
@@ -387,9 +433,11 @@ export async function getEmployees(): Promise<Employee[]> {
 
 export async function getReminders(): Promise<Reminder[]> {
   const supabase = await createClient();
+  const garageId = await getCurrentGarageId();
   const { data, error } = await supabase
     .from("reminders")
     .select("*")
+    .eq("garage_id", garageId)
     .order("due_date", { ascending: true });
   if (error) throw new Error(error.message);
   return (data ?? []).map(mapReminder);
@@ -399,10 +447,11 @@ export async function getReminders(): Promise<Reminder[]> {
 
 export async function getGarageSettings(): Promise<GarageSettings> {
   const supabase = await createClient();
+  const garageId = await getCurrentGarageId();
   const { data, error } = await supabase
     .from("garage_settings")
     .select("*")
-    .limit(1)
+    .eq("id", garageId)
     .maybeSingle();
   if (error) throw new Error(error.message);
   if (data) return mapGarageSettings(data);

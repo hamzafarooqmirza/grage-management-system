@@ -166,3 +166,11 @@ export interface GarageSettings {
   defaultVatRate: number;
   invoicePrefix: string;
 }
+
+export type GarageRole = "owner" | "manager" | "technician" | "other";
+
+export interface Garage {
+  id: string;
+  name: string;
+  role: GarageRole;
+}

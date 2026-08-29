@@ -20,6 +20,7 @@ export type Database = {
           date: string
           duration_minutes: number | null
           est_price: number | null
+          garage_id: string
           id: string
           job_type: Database["public"]["Enums"]["job_type"]
           notes: string | null
@@ -34,6 +35,7 @@ export type Database = {
           date: string
           duration_minutes?: number | null
           est_price?: number | null
+          garage_id: string
           id?: string
           job_type: Database["public"]["Enums"]["job_type"]
           notes?: string | null
@@ -48,6 +50,7 @@ export type Database = {
           date?: string
           duration_minutes?: number | null
           est_price?: number | null
+          garage_id?: string
           id?: string
           job_type?: Database["public"]["Enums"]["job_type"]
           notes?: string | null
@@ -61,6 +64,13 @@ export type Database = {
             columns: ["customer_id"]
             isOneToOne: false
             referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bookings_garage_id_fkey"
+            columns: ["garage_id"]
+            isOneToOne: false
+            referencedRelation: "garage_settings"
             referencedColumns: ["id"]
           },
           {
@@ -79,6 +89,7 @@ export type Database = {
           created_at: string
           email: string
           full_name: string
+          garage_id: string
           id: string
           notes: string | null
           phone: string
@@ -91,6 +102,7 @@ export type Database = {
           created_at?: string
           email: string
           full_name: string
+          garage_id: string
           id?: string
           notes?: string | null
           phone: string
@@ -103,13 +115,22 @@ export type Database = {
           created_at?: string
           email?: string
           full_name?: string
+          garage_id?: string
           id?: string
           notes?: string | null
           phone?: string
           post_code?: string
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "customers_garage_id_fkey"
+            columns: ["garage_id"]
+            isOneToOne: false
+            referencedRelation: "garage_settings"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       employees: {
         Row: {
@@ -117,6 +138,7 @@ export type Database = {
           created_at: string
           email: string | null
           full_name: string
+          garage_id: string
           hourly_rate: number
           id: string
           phone: string | null
@@ -128,6 +150,7 @@ export type Database = {
           created_at?: string
           email?: string | null
           full_name: string
+          garage_id: string
           hourly_rate?: number
           id?: string
           phone?: string | null
@@ -139,13 +162,54 @@ export type Database = {
           created_at?: string
           email?: string | null
           full_name?: string
+          garage_id?: string
           hourly_rate?: number
           id?: string
           phone?: string | null
           role?: string
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "employees_garage_id_fkey"
+            columns: ["garage_id"]
+            isOneToOne: false
+            referencedRelation: "garage_settings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      garage_members: {
+        Row: {
+          created_at: string
+          garage_id: string
+          id: string
+          role: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          garage_id: string
+          id?: string
+          role?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          garage_id?: string
+          id?: string
+          role?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "garage_members_garage_id_fkey"
+            columns: ["garage_id"]
+            isOneToOne: false
+            referencedRelation: "garage_settings"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       garage_settings: {
         Row: {
@@ -189,6 +253,7 @@ export type Database = {
           customer_id: string | null
           done: boolean
           due_date: string
+          garage_id: string
           id: string
           notes: string | null
           title: string
@@ -199,6 +264,7 @@ export type Database = {
           customer_id?: string | null
           done?: boolean
           due_date: string
+          garage_id: string
           id?: string
           notes?: string | null
           title: string
@@ -209,6 +275,7 @@ export type Database = {
           customer_id?: string | null
           done?: boolean
           due_date?: string
+          garage_id?: string
           id?: string
           notes?: string | null
           title?: string
@@ -223,6 +290,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "reminders_garage_id_fkey"
+            columns: ["garage_id"]
+            isOneToOne: false
+            referencedRelation: "garage_settings"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "reminders_vehicle_id_fkey"
             columns: ["vehicle_id"]
             isOneToOne: false
@@ -234,6 +308,7 @@ export type Database = {
       invoice_line_items: {
         Row: {
           description: string
+          garage_id: string
           id: string
           invoice_id: string
           quantity: number
@@ -241,6 +316,7 @@ export type Database = {
         }
         Insert: {
           description: string
+          garage_id: string
           id?: string
           invoice_id: string
           quantity?: number
@@ -248,12 +324,20 @@ export type Database = {
         }
         Update: {
           description?: string
+          garage_id?: string
           id?: string
           invoice_id?: string
           quantity?: number
           unit_price?: number
         }
         Relationships: [
+          {
+            foreignKeyName: "invoice_line_items_garage_id_fkey"
+            columns: ["garage_id"]
+            isOneToOne: false
+            referencedRelation: "garage_settings"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "invoice_line_items_invoice_id_fkey"
             columns: ["invoice_id"]
@@ -269,6 +353,7 @@ export type Database = {
           customer_id: string
           date: string
           due_date: string
+          garage_id: string
           id: string
           job_id: string | null
           notes: string | null
@@ -283,6 +368,7 @@ export type Database = {
           customer_id: string
           date: string
           due_date: string
+          garage_id: string
           id?: string
           job_id?: string | null
           notes?: string | null
@@ -297,6 +383,7 @@ export type Database = {
           customer_id?: string
           date?: string
           due_date?: string
+          garage_id?: string
           id?: string
           job_id?: string | null
           notes?: string | null
@@ -312,6 +399,13 @@ export type Database = {
             columns: ["customer_id"]
             isOneToOne: false
             referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invoices_garage_id_fkey"
+            columns: ["garage_id"]
+            isOneToOne: false
+            referencedRelation: "garage_settings"
             referencedColumns: ["id"]
           },
           {
@@ -337,6 +431,7 @@ export type Database = {
           customer_id: string
           description: string | null
           due_date: string | null
+          garage_id: string
           id: string
           notes: string | null
           priority: string
@@ -351,6 +446,7 @@ export type Database = {
           customer_id: string
           description?: string | null
           due_date?: string | null
+          garage_id: string
           id?: string
           notes?: string | null
           priority?: string
@@ -365,6 +461,7 @@ export type Database = {
           customer_id?: string
           description?: string | null
           due_date?: string | null
+          garage_id?: string
           id?: string
           notes?: string | null
           priority?: string
@@ -389,6 +486,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "job_cards_garage_id_fkey"
+            columns: ["garage_id"]
+            isOneToOne: false
+            referencedRelation: "garage_settings"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "job_cards_vehicle_id_fkey"
             columns: ["vehicle_id"]
             isOneToOne: false
@@ -400,6 +504,7 @@ export type Database = {
       job_labour_lines: {
         Row: {
           description: string
+          garage_id: string
           hours: number
           id: string
           job_id: string
@@ -407,6 +512,7 @@ export type Database = {
         }
         Insert: {
           description: string
+          garage_id: string
           hours?: number
           id?: string
           job_id: string
@@ -414,12 +520,20 @@ export type Database = {
         }
         Update: {
           description?: string
+          garage_id?: string
           hours?: number
           id?: string
           job_id?: string
           rate?: number
         }
         Relationships: [
+          {
+            foreignKeyName: "job_labour_lines_garage_id_fkey"
+            columns: ["garage_id"]
+            isOneToOne: false
+            referencedRelation: "garage_settings"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "job_labour_lines_job_id_fkey"
             columns: ["job_id"]
@@ -432,6 +546,7 @@ export type Database = {
       job_part_lines: {
         Row: {
           description: string
+          garage_id: string
           id: string
           job_id: string
           part_id: string | null
@@ -440,6 +555,7 @@ export type Database = {
         }
         Insert: {
           description: string
+          garage_id: string
           id?: string
           job_id: string
           part_id?: string | null
@@ -448,6 +564,7 @@ export type Database = {
         }
         Update: {
           description?: string
+          garage_id?: string
           id?: string
           job_id?: string
           part_id?: string | null
@@ -455,6 +572,13 @@ export type Database = {
           unit_price?: number
         }
         Relationships: [
+          {
+            foreignKeyName: "job_part_lines_garage_id_fkey"
+            columns: ["garage_id"]
+            isOneToOne: false
+            referencedRelation: "garage_settings"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "job_part_lines_job_id_fkey"
             columns: ["job_id"]
@@ -476,6 +600,7 @@ export type Database = {
           category: string | null
           cost_price: number
           created_at: string
+          garage_id: string
           id: string
           name: string
           reorder_level: number
@@ -489,6 +614,7 @@ export type Database = {
           category?: string | null
           cost_price?: number
           created_at?: string
+          garage_id: string
           id?: string
           name: string
           reorder_level?: number
@@ -502,6 +628,7 @@ export type Database = {
           category?: string | null
           cost_price?: number
           created_at?: string
+          garage_id?: string
           id?: string
           name?: string
           reorder_level?: number
@@ -511,13 +638,22 @@ export type Database = {
           supplier?: string | null
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "parts_garage_id_fkey"
+            columns: ["garage_id"]
+            isOneToOne: false
+            referencedRelation: "garage_settings"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       vehicles: {
         Row: {
           colour: string | null
           created_at: string
           customer_id: string
+          garage_id: string
           id: string
           last_service_date: string | null
           make: string | null
@@ -532,6 +668,7 @@ export type Database = {
           colour?: string | null
           created_at?: string
           customer_id: string
+          garage_id: string
           id?: string
           last_service_date?: string | null
           make?: string | null
@@ -546,6 +683,7 @@ export type Database = {
           colour?: string | null
           created_at?: string
           customer_id?: string
+          garage_id?: string
           id?: string
           last_service_date?: string | null
           make?: string | null
@@ -564,6 +702,13 @@ export type Database = {
             referencedRelation: "customers"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "vehicles_garage_id_fkey"
+            columns: ["garage_id"]
+            isOneToOne: false
+            referencedRelation: "garage_settings"
+            referencedColumns: ["id"]
+          },
         ]
       }
     }
@@ -572,6 +717,8 @@ export type Database = {
     }
     Functions: {
       next_invoice_number: { Args: never; Returns: string }
+      is_garage_member: { Args: { target_garage_id: string }; Returns: boolean }
+      set_invoice_number: { Args: never; Returns: undefined }
     }
     Enums: {
       invoice_status: "estimate" | "draft" | "sent" | "paid" | "overdue"

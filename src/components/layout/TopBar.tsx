@@ -3,6 +3,7 @@
 import { Search, Bell, Menu } from "lucide-react";
 import { useNavDrawer } from "./NavDrawerContext";
 import { UserMenu } from "./UserMenu";
+import { GarageSwitcher } from "./GarageSwitcher";
 
 export function TopBar({ title, subtitle }: { title: string; subtitle?: string }) {
   const { open } = useNavDrawer();
@@ -35,6 +36,7 @@ export function TopBar({ title, subtitle }: { title: string; subtitle?: string }
         <button className="rounded-lg border border-slate-200 p-2 text-slate-500 hover:border-accent-500/40 hover:bg-accent-50 hover:text-accent-600">
           <Bell size={16} />
         </button>
+        <GarageSwitcher />
         <UserMenu />
       </div>
     </header>
