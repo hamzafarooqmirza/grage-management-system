@@ -3,34 +3,36 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Loader2 } from "lucide-react";
-import { updateJobStatus } from "@/lib/supabase/mutations";
-import { JOB_STATUSES, JOB_STATUS_LABELS } from "@/lib/job-status";
-import type { JobStatus } from "@/lib/types";
+import { updateJobPriority } from "@/lib/supabase/mutations";
+import { JOB_PRIORITIES, JOB_PRIORITY_LABELS } from "@/lib/job-status";
+import type { JobPriority } from "@/lib/types";
 
-const statusRingColor: Record<JobStatus, string> = {
-  booked: "border-accent-500/40 text-accent-700 bg-accent-50",
-  checked_in: "border-violet-500/40 text-violet-800 bg-violet-50",
-  in_progress: "border-amber-500/40 text-amber-800 bg-amber-50",
-  awaiting_parts: "border-rose-500/40 text-rose-800 bg-rose-50",
-  completed: "border-emerald-500/40 text-emerald-800 bg-emerald-50",
-  vehicle_released: "border-slate-300 text-slate-700 bg-slate-100",
-  invoiced: "border-slate-300 text-slate-700 bg-slate-100",
+const priorityRingColor: Record<JobPriority, string> = {
+  low: "border-slate-300 text-slate-700 bg-slate-100",
+  medium: "border-amber-500/40 text-amber-800 bg-amber-50",
+  high: "border-rose-500/40 text-rose-800 bg-rose-50",
 };
 
-export function JobStatusSelect({ jobId, status }: { jobId: string; status: JobStatus }) {
+export function JobPrioritySelect({
+  jobId,
+  priority,
+}: {
+  jobId: string;
+  priority: JobPriority;
+}) {
   const router = useRouter();
-  const [current, setCurrent] = useState(status);
+  const [current, setCurrent] = useState(priority);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  async function handleChange(next: JobStatus) {
+  async function handleChange(next: JobPriority) {
     if (next === current) return;
     const previous = current;
     setCurrent(next);
     setSaving(true);
     setError(null);
 
-    const result = await updateJobStatus(jobId, next);
+    const result = await updateJobPriority(jobId, next);
 
     setSaving(false);
     if (result.error) {
@@ -47,12 +49,12 @@ export function JobStatusSelect({ jobId, status }: { jobId: string; status: JobS
         <select
           value={current}
           disabled={saving}
-          onChange={(e) => handleChange(e.target.value as JobStatus)}
-          className={`appearance-none rounded-full border py-1 pl-3 pr-8 text-xs font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-accent-500/30 disabled:opacity-60 ${statusRingColor[current]}`}
+          onChange={(e) => handleChange(e.target.value as JobPriority)}
+          className={`appearance-none rounded-full border py-1 pl-3 pr-8 text-xs font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-accent-500/30 disabled:opacity-60 ${priorityRingColor[current]}`}
         >
-          {JOB_STATUSES.map((value) => (
+          {JOB_PRIORITIES.map((value) => (
             <option key={value} value={value}>
-              {JOB_STATUS_LABELS[value]}
+              {JOB_PRIORITY_LABELS[value]} priority
             </option>
           ))}
         </select>

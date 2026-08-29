@@ -219,6 +219,7 @@ export type Database = {
           due_date: string | null
           id: string
           notes: string | null
+          priority: string
           status: Database["public"]["Enums"]["job_status"]
           technician: string | null
           updated_at: string
@@ -232,6 +233,7 @@ export type Database = {
           due_date?: string | null
           id?: string
           notes?: string | null
+          priority?: string
           status?: Database["public"]["Enums"]["job_status"]
           technician?: string | null
           updated_at?: string
@@ -245,6 +247,7 @@ export type Database = {
           due_date?: string | null
           id?: string
           notes?: string | null
+          priority?: string
           status?: Database["public"]["Enums"]["job_status"]
           technician?: string | null
           updated_at?: string
@@ -451,12 +454,14 @@ export type Database = {
       next_invoice_number: { Args: never; Returns: string }
     }
     Enums: {
-      invoice_status: "draft" | "sent" | "paid" | "overdue"
+      invoice_status: "estimate" | "draft" | "sent" | "paid" | "overdue"
       job_status:
         | "booked"
+        | "checked_in"
         | "in_progress"
         | "awaiting_parts"
         | "completed"
+        | "vehicle_released"
         | "invoiced"
       job_type:
         | "vehicle_recovery"

@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import {
   Calendar,
   Car,
+  ClipboardList,
   FileText,
   Percent,
   Plus,
@@ -34,10 +35,13 @@ function newLineItem(): DraftLineItem {
 export function CreateInvoiceButton({
   customers,
   vehicles,
+  mode = "invoice",
 }: {
   customers: Customer[];
   vehicles: Vehicle[];
+  mode?: "invoice" | "estimate";
 }) {
+  const isEstimate = mode === "estimate";
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [customerId, setCustomerId] = useState("");
@@ -85,6 +89,7 @@ export function CreateInvoiceButton({
       invoiceDate: String(formData.get("invoiceDate") ?? ""),
       dueDate: String(formData.get("dueDate") ?? ""),
       vatRate,
+      status: isEstimate ? "estimate" : "draft",
       notes: String(formData.get("notes") ?? ""),
       lineItems: lineItems.map(({ description, quantity, unitPrice }) => ({
         description,
@@ -110,17 +115,25 @@ export function CreateInvoiceButton({
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="flex items-center gap-2 rounded-lg bg-accent-600 px-3.5 py-2 text-sm font-medium text-white shadow-sm shadow-accent-600/30 transition-colors hover:bg-accent-700"
+        className={
+          isEstimate
+            ? "flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3.5 py-2 text-sm font-medium text-slate-700 shadow-sm transition-colors hover:bg-slate-50"
+            : "flex items-center gap-2 rounded-lg bg-accent-600 px-3.5 py-2 text-sm font-medium text-white shadow-sm shadow-accent-600/30 transition-colors hover:bg-accent-700"
+        }
       >
-        <Plus size={15} /> New invoice
+        <Plus size={15} /> {isEstimate ? "New estimate" : "New invoice"}
       </button>
 
       <Modal
         open={open}
         onClose={() => setOpen(false)}
-        title="Create Invoice"
-        subtitle="Raise a new invoice for a customer"
-        icon={Receipt}
+        title={isEstimate ? "Create Estimate" : "Create Invoice"}
+        subtitle={
+          isEstimate
+            ? "Quote a customer before the work is confirmed"
+            : "Raise a new invoice for a customer"
+        }
+        icon={isEstimate ? ClipboardList : Receipt}
         maxWidth="max-w-2xl"
       >
         <form className="space-y-5" onSubmit={handleSubmit}>
@@ -304,7 +317,11 @@ export function CreateInvoiceButton({
               disabled={submitting}
               className="rounded-lg bg-accent-600 px-4 py-2 text-sm font-medium text-white shadow-sm shadow-accent-600/30 transition-colors hover:bg-accent-700 disabled:opacity-60"
             >
-              {submitting ? "Creating..." : "Create Invoice"}
+              {submitting
+                ? "Creating..."
+                : isEstimate
+                  ? "Create Estimate"
+                  : "Create Invoice"}
             </button>
           </div>
         </form>
