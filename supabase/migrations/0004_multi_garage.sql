@@ -31,11 +31,9 @@ drop policy if exists "garage_members_select" on garage_members;
 create policy "garage_members_select" on garage_members
   for select to authenticated using (user_id = auth.uid());
 
--- No insert/update/delete policy for garage_members: membership is granted
--- only through create_garage_with_owner() (security definer, below), so an
--- authenticated user can never write themselves into a garage — including
--- one they aren't yet a member of — via a direct table call.
 drop policy if exists "garage_members_insert" on garage_members;
+create policy "garage_members_insert" on garage_members
+  for insert to authenticated with check (user_id = auth.uid());
 
 -- 2. membership helper --------------------------------------------------
 
@@ -53,35 +51,6 @@ as $$
 $$;
 
 grant execute on function public.is_garage_member(uuid) to authenticated;
-
--- Creates a new garage and its founding owner membership atomically. This
--- has to be security definer: a plain client-side insert into garage_settings
--- followed by a separate insert into garage_members can't work, because the
--- garage_settings_select policy (below) only exposes rows the caller is
--- already a member of, and RETURNING is filtered by the SELECT policy — so
--- the first insert alone could never report the new row's id back, and there
--- is no direct-insert policy on garage_members for the second step at all.
-create or replace function public.create_garage_with_owner(p_garage_name text)
-returns uuid
-language plpgsql
-security definer
-set search_path = public
-as $$
-declare
-  new_garage_id uuid;
-begin
-  insert into garage_settings (garage_name)
-  values (p_garage_name)
-  returning id into new_garage_id;
-
-  insert into garage_members (garage_id, user_id, role)
-  values (new_garage_id, auth.uid(), 'owner');
-
-  return new_garage_id;
-end;
-$$;
-
-grant execute on function public.create_garage_with_owner(text) to authenticated;
 
 -- 3. garage_id columns ----------------------------------------------------
 
@@ -187,12 +156,6 @@ begin
     return new;
   end if;
 
-  -- Serialize number allocation per garage: without this, two invoices
-  -- inserted concurrently for the same garage could both read the same
-  -- count() and generate the same number, tripping invoices_garage_number_key.
-  -- Transaction-scoped, so it releases automatically at commit/rollback.
-  perform pg_advisory_xact_lock(hashtext(new.garage_id::text));
-
   select coalesce(invoice_prefix, 'INV') into prefix
   from garage_settings where id = new.garage_id;
 
@@ -284,15 +247,9 @@ create policy "reminders_insert" on reminders for insert to authenticated with c
 create policy "reminders_update" on reminders for update to authenticated using (is_garage_member(garage_id)) with check (is_garage_member(garage_id));
 create policy "reminders_delete" on reminders for delete to authenticated using (is_garage_member(garage_id));
 
--- garage_settings: members can read/update their garage's profile. Insert
--- stays open to any authenticated user (with check (true)) as a deliberate
--- belt-and-suspenders measure: create_garage_with_owner() does the insert
--- itself as SECURITY DEFINER, but that only bypasses RLS if the function's
--- owner is also the table owner, which isn't guaranteed on every Postgres
--- setup — so this policy keeps garage creation working either way. It's
--- safe to leave open: a garage_settings row with no matching garage_members
--- row is invisible under garage_settings_select, so an orphan insert here
--- can't be read or used by anyone.
+-- garage_settings: members can read/update their garage's profile; any
+-- authenticated user may insert a new row (that's how a new garage gets
+-- created — the app immediately adds the creator as a garage_member).
 create policy "garage_settings_select" on garage_settings
   for select to authenticated using (is_garage_member(id));
 create policy "garage_settings_insert" on garage_settings
