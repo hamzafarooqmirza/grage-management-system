@@ -95,9 +95,15 @@ export async function deleteCustomer(id: string): Promise<MutationResult> {
     (jobs.count ?? 0) > 0 ||
     (invoices.count ?? 0) > 0
   ) {
+    const parts = [
+      (vehicles.count ?? 0) > 0 && `${vehicles.count} vehicle${vehicles.count === 1 ? "" : "s"}`,
+      (bookings.count ?? 0) > 0 && `${bookings.count} booking${bookings.count === 1 ? "" : "s"}`,
+      (jobs.count ?? 0) > 0 && `${jobs.count} job${jobs.count === 1 ? "" : "s"}`,
+      (invoices.count ?? 0) > 0 && `${invoices.count} invoice${invoices.count === 1 ? "" : "s"}`,
+    ].filter((p): p is string => Boolean(p));
+
     return {
-      error:
-        "Can't delete this customer while they still have vehicles, bookings, jobs, or invoices on record. Remove those first.",
+      error: `This customer still has ${parts.join(", ")} on record.`,
     };
   }
 
@@ -110,6 +116,96 @@ export async function deleteCustomer(id: string): Promise<MutationResult> {
   if (error) return { error: error.message };
 
   revalidatePath("/customers");
+  revalidatePath("/");
+  return {};
+}
+
+export async function deleteCustomerCascade(id: string): Promise<MutationResult> {
+  const supabase = await createClient();
+  const garageId = await getCurrentGarageId();
+
+  const { data: invoiceIds, error: invoiceIdsError } = await supabase
+    .from("invoices")
+    .select("id")
+    .eq("customer_id", id)
+    .eq("garage_id", garageId);
+  if (invoiceIdsError) return { error: invoiceIdsError.message };
+
+  if (invoiceIds && invoiceIds.length > 0) {
+    const { error } = await supabase
+      .from("invoice_line_items")
+      .delete()
+      .in(
+        "invoice_id",
+        invoiceIds.map((i) => i.id)
+      )
+      .eq("garage_id", garageId);
+    if (error) return { error: error.message };
+  }
+
+  const { error: invoicesError } = await supabase
+    .from("invoices")
+    .delete()
+    .eq("customer_id", id)
+    .eq("garage_id", garageId);
+  if (invoicesError) return { error: invoicesError.message };
+
+  const { data: jobIds, error: jobIdsError } = await supabase
+    .from("job_cards")
+    .select("id")
+    .eq("customer_id", id)
+    .eq("garage_id", garageId);
+  if (jobIdsError) return { error: jobIdsError.message };
+
+  if (jobIds && jobIds.length > 0) {
+    const ids = jobIds.map((j) => j.id);
+    const { error: labourError } = await supabase
+      .from("job_labour_lines")
+      .delete()
+      .in("job_id", ids)
+      .eq("garage_id", garageId);
+    if (labourError) return { error: labourError.message };
+
+    const { error: partsError } = await supabase
+      .from("job_part_lines")
+      .delete()
+      .in("job_id", ids)
+      .eq("garage_id", garageId);
+    if (partsError) return { error: partsError.message };
+  }
+
+  const { error: jobsError } = await supabase
+    .from("job_cards")
+    .delete()
+    .eq("customer_id", id)
+    .eq("garage_id", garageId);
+  if (jobsError) return { error: jobsError.message };
+
+  const { error: bookingsError } = await supabase
+    .from("bookings")
+    .delete()
+    .eq("customer_id", id)
+    .eq("garage_id", garageId);
+  if (bookingsError) return { error: bookingsError.message };
+
+  const { error: vehiclesError } = await supabase
+    .from("vehicles")
+    .delete()
+    .eq("customer_id", id)
+    .eq("garage_id", garageId);
+  if (vehiclesError) return { error: vehiclesError.message };
+
+  const { error } = await supabase
+    .from("customers")
+    .delete()
+    .eq("id", id)
+    .eq("garage_id", garageId);
+  if (error) return { error: error.message };
+
+  revalidatePath("/customers");
+  revalidatePath("/jobs");
+  revalidatePath("/diary");
+  revalidatePath("/invoices");
   revalidatePath("/");
   return {};
 }

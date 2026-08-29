@@ -1,9 +1,8 @@
 import Link from "next/link";
 import { TopBar } from "@/components/layout/TopBar";
 import { Card } from "@/components/ui/Card";
-import { DeleteButton } from "@/components/ui/DeleteButton";
+import { DeleteCustomerButton } from "@/components/customers/DeleteCustomerButton";
 import { getCustomers, getVehicles } from "@/lib/supabase/queries";
-import { deleteCustomer } from "@/lib/supabase/mutations";
 import { formatDate } from "@/lib/format";
 import { AddCustomerButton } from "@/components/forms/AddCustomerModal";
 
@@ -70,12 +69,7 @@ export default async function CustomersPage() {
                       {formatDate(c.createdAt)}
                     </td>
                     <td className="px-5 py-3 text-right">
-                      <DeleteButton
-                        id={c.id}
-                        action={deleteCustomer}
-                        label={`Delete ${c.name}`}
-                        confirmMessage={`Delete ${c.name}? This cannot be undone.`}
-                      />
+                      <DeleteCustomerButton customerId={c.id} customerName={c.name} />
                     </td>
                   </tr>
                 );
