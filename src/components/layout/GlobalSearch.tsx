@@ -5,14 +5,27 @@ import { useRouter } from "next/navigation";
 import { Car, Loader2, Mail, MapPin, Search } from "lucide-react";
 import { searchCustomers, type CustomerSearchResult } from "@/lib/supabase/search";
 
+interface SearchState {
+  term: string;
+  items: CustomerSearchResult[];
+}
+
 export function GlobalSearch() {
   const router = useRouter();
   const [query, setQuery] = useState("");
-  const [results, setResults] = useState<CustomerSearchResult[]>([]);
+  const [searchState, setSearchState] = useState<SearchState | null>(null);
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [searched, setSearched] = useState(false);
   const requestId = useRef(0);
+
+  const currentTerm = query.trim();
+  // Only trust searchState when it matches the query currently on screen —
+  // this discards results from a previous, now-superseded query instead of
+  // showing them (and letting a click or Enter navigate to them) during the
+  // debounce window of a new one.
+  const isCurrent = searchState !== null && searchState.term === currentTerm;
+  const results = isCurrent ? searchState.items : [];
+  const searched = isCurrent;
 
   useEffect(() => {
     const term = query.trim();
@@ -23,16 +36,10 @@ export function GlobalSearch() {
       setLoading(true);
       searchCustomers(term)
         .then((found) => {
-          if (requestId.current === id) {
-            setResults(found);
-            setSearched(true);
-          }
+          if (requestId.current === id) setSearchState({ term, items: found });
         })
         .catch(() => {
-          if (requestId.current === id) {
-            setResults([]);
-            setSearched(true);
-          }
+          if (requestId.current === id) setSearchState({ term, items: [] });
         })
         .finally(() => {
           if (requestId.current === id) setLoading(false);
@@ -45,7 +52,7 @@ export function GlobalSearch() {
   function goTo(id: string) {
     setOpen(false);
     setQuery("");
-    setResults([]);
+    setSearchState(null);
     router.push(`/customers/${id}`);
   }
 

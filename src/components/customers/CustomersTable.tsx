@@ -179,23 +179,34 @@ export function CustomersTable({
 function RestoreButton({ customerId }: { customerId: string }) {
   const router = useRouter();
   const [pending, setPending] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   async function handleRestore() {
     setPending(true);
-    await restoreCustomer(customerId);
+    setError(null);
+    const result = await restoreCustomer(customerId);
     setPending(false);
+
+    if (result.error) {
+      setError(result.error);
+      return;
+    }
+
     router.refresh();
   }
 
   return (
-    <button
-      type="button"
-      onClick={handleRestore}
-      disabled={pending}
-      className="flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-2.5 py-1 text-xs font-medium text-slate-700 shadow-sm transition-colors hover:bg-slate-50 disabled:opacity-60"
-    >
-      {pending ? <Loader2 size={13} className="animate-spin" /> : <ArchiveRestore size={13} />}
-      {pending ? "Restoring..." : "Restore"}
-    </button>
+    <div className="flex flex-col items-end gap-1">
+      <button
+        type="button"
+        onClick={handleRestore}
+        disabled={pending}
+        className="flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-2.5 py-1 text-xs font-medium text-slate-700 shadow-sm transition-colors hover:bg-slate-50 disabled:opacity-60"
+      >
+        {pending ? <Loader2 size={13} className="animate-spin" /> : <ArchiveRestore size={13} />}
+        {pending ? "Restoring..." : "Restore"}
+      </button>
+      {error ? <p className="text-xs text-rose-700">{error}</p> : null}
+    </div>
   );
 }

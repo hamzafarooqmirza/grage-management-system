@@ -1,11 +1,11 @@
 import { TopBar } from "@/components/layout/TopBar";
 import { CustomersTable } from "@/components/customers/CustomersTable";
-import { getArchivedCustomers, getCustomers, getVehicles } from "@/lib/supabase/queries";
+import { getActiveCustomers, getArchivedCustomers, getVehicles } from "@/lib/supabase/queries";
 import { AddCustomerButton } from "@/components/forms/AddCustomerModal";
 
 export default async function CustomersPage() {
   const [customers, vehicles, archivedCustomers] = await Promise.all([
-    getCustomers(),
+    getActiveCustomers(),
     getVehicles(),
     getArchivedCustomers(),
   ]);
