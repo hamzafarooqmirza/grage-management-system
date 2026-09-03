@@ -15,6 +15,7 @@ import { deleteBooking } from "@/lib/supabase/mutations";
 import { BookJobButton } from "@/components/forms/BookJobModal";
 import { JOB_TYPE_LABELS, JOB_TYPE_TONE } from "@/lib/job-types";
 import { formatCurrency } from "@/lib/format";
+import { formatServiceDetailsSummary } from "@/lib/service-fields";
 
 function upcomingDays(count: number) {
   const dayNames = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
@@ -119,6 +120,11 @@ export default async function DiaryPage() {
                           {b.estPrice != null ? (
                             <p className="mt-1 text-xs font-medium text-slate-700">
                               Est. {formatCurrency(b.estPrice)}
+                            </p>
+                          ) : null}
+                          {formatServiceDetailsSummary(b.serviceDetails) ? (
+                            <p className="mt-1 text-xs text-slate-500">
+                              {formatServiceDetailsSummary(b.serviceDetails)}
                             </p>
                           ) : null}
                           {b.notes ? (

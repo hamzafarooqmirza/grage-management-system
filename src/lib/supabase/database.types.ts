@@ -24,6 +24,7 @@ export type Database = {
           id: string
           job_type: Database["public"]["Enums"]["job_type"]
           notes: string | null
+          service_details: Json | null
           technician: string | null
           time: string | null
           vehicle_id: string | null
@@ -39,6 +40,7 @@ export type Database = {
           id?: string
           job_type: Database["public"]["Enums"]["job_type"]
           notes?: string | null
+          service_details?: Json | null
           technician?: string | null
           time?: string | null
           vehicle_id?: string | null
@@ -54,6 +56,7 @@ export type Database = {
           id?: string
           job_type?: Database["public"]["Enums"]["job_type"]
           notes?: string | null
+          service_details?: Json | null
           technician?: string | null
           time?: string | null
           vehicle_id?: string | null

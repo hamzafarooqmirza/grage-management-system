@@ -15,9 +15,18 @@ import {
 } from "lucide-react";
 import { Modal } from "@/components/ui/Modal";
 import { FieldGroup, Select, TextArea, TextInput } from "@/components/ui/Field";
+import { ServiceSpecificFields } from "@/components/forms/ServiceSpecificFields";
 import { addBooking } from "@/lib/supabase/mutations";
 import { JOB_TYPES, JOB_TYPE_LABELS } from "@/lib/job-types";
 import { JOB_PRIORITIES, JOB_PRIORITY_LABELS } from "@/lib/job-status";
+import {
+  EMPTY_STORAGE_VALUES,
+  buildServiceDetails,
+  defaultServiceValues,
+  storageTotal,
+  type ServiceFieldValues,
+  type StorageFormValues,
+} from "@/lib/service-fields";
 import type { Customer, Employee, JobPriority, JobType } from "@/lib/types";
 
 export function BookJobButton({
@@ -33,22 +42,73 @@ export function BookJobButton({
   const [error, setError] = useState<string | null>(null);
   const activeEmployees = employees.filter((e) => e.active);
 
+  const [jobType, setJobType] = useState<JobType | "">("");
+  const [estPrice, setEstPrice] = useState("");
+  const [serviceValues, setServiceValues] = useState<ServiceFieldValues>({});
+  const [storageValues, setStorageValues] = useState<StorageFormValues>(EMPTY_STORAGE_VALUES);
+
+  const storageError =
+    jobType === "vehicle_storage" &&
+    storageValues.startDate &&
+    storageValues.neededBy &&
+    storageValues.neededBy < storageValues.startDate
+      ? "Needed By date cannot be earlier than Start Date."
+      : null;
+
+  function handleJobTypeChange(next: string) {
+    const nextType = next as JobType | "";
+    const wasStorage = jobType === "vehicle_storage";
+
+    setJobType(nextType);
+    setServiceValues(defaultServiceValues(nextType));
+    setStorageValues(EMPTY_STORAGE_VALUES);
+
+    // The price field may hold a total this component computed for the
+    // previous service (vehicle storage) — that value belongs to the
+    // service being left, so don't carry it into an unrelated job type.
+    if (wasStorage && nextType !== "vehicle_storage") {
+      setEstPrice("");
+    }
+  }
+
+  function handleServiceValueChange(name: string, value: string | number) {
+    setServiceValues((prev) => ({ ...prev, [name]: value }));
+  }
+
+  function handleStorageChange(patch: Partial<StorageFormValues>) {
+    setStorageValues((prev) => {
+      const next = { ...prev, ...patch };
+      const total = storageTotal(next);
+      if (total !== null) {
+        setEstPrice(total.toFixed(2));
+      }
+      return next;
+    });
+  }
+
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
+
+    if (jobType === "vehicle_storage" && storageError) {
+      setError(storageError);
+      return;
+    }
+
     setSubmitting(true);
     setError(null);
 
     const formData = new FormData(e.currentTarget);
-    const estPriceRaw = formData.get("estPrice");
+    const serviceDetails = buildServiceDetails(jobType, serviceValues, storageValues);
     const result = await addBooking({
       customerId: String(formData.get("customer") ?? ""),
-      jobType: String(formData.get("jobType") ?? "") as JobType,
+      jobType: jobType as JobType,
       date: String(formData.get("date") ?? ""),
-      estPrice: estPriceRaw ? Number(estPriceRaw) : undefined,
+      estPrice: estPrice ? Number(estPrice) : undefined,
       priority: String(formData.get("priority") ?? "medium") as JobPriority,
       technician: String(formData.get("technician") ?? ""),
       bay: String(formData.get("bay") ?? ""),
       notes: String(formData.get("notes") ?? ""),
+      serviceDetails,
     });
 
     setSubmitting(false);
@@ -59,6 +119,10 @@ export function BookJobButton({
     }
 
     setOpen(false);
+    setJobType("");
+    setEstPrice("");
+    setServiceValues({});
+    setStorageValues(EMPTY_STORAGE_VALUES);
     router.refresh();
   }
 
@@ -100,7 +164,8 @@ export function BookJobButton({
               name="jobType"
               icon={ClipboardList}
               required
-              defaultValue=""
+              value={jobType}
+              onChange={(e) => handleJobTypeChange(e.target.value)}
             >
               <option value="" disabled>
                 Select a job type
@@ -112,6 +177,17 @@ export function BookJobButton({
               ))}
             </Select>
           </FieldGroup>
+
+          {jobType ? (
+            <ServiceSpecificFields
+              jobType={jobType}
+              values={serviceValues}
+              onChange={handleServiceValueChange}
+              storageValues={storageValues}
+              onStorageChange={handleStorageChange}
+              storageError={storageError}
+            />
+          ) : null}
 
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <FieldGroup label="Date" htmlFor="date" required>
@@ -127,6 +203,8 @@ export function BookJobButton({
                 min="0"
                 step="0.01"
                 placeholder="0.00"
+                value={estPrice}
+                onChange={(e) => setEstPrice(e.target.value)}
               />
             </FieldGroup>
           </div>

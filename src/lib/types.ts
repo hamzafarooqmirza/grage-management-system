@@ -49,6 +49,49 @@ export interface Customer {
   archived: boolean;
 }
 
+export type TyreCondition = "new" | "part_worn";
+export type Transmission = "automatic" | "manual";
+export type YesNo = "yes" | "no";
+
+export interface TyreReplacementDetails {
+  tyreCondition: TyreCondition;
+  tyreSize: string;
+  quantity: number;
+}
+
+export interface VehicleStorageDetails {
+  startDate: string | null;
+  neededBy: string | null;
+  dailyRate: number | null;
+}
+
+export interface MobileTyreFittingDetails {
+  location: string;
+  registration: string;
+  tyreSize: string;
+  quantity: number;
+}
+
+export interface BatteryReplacementDetails {
+  batteryCode: string;
+}
+
+export interface VehicleRecoveryDetails {
+  pickupLocation: string;
+  registration: string;
+  transmission: Transmission;
+  canRoll: YesNo;
+  passengers: number;
+  dropoffAddress: string;
+}
+
+export type ServiceDetails =
+  | ({ jobType: "tyre_replacement" } & TyreReplacementDetails)
+  | ({ jobType: "vehicle_storage" } & VehicleStorageDetails)
+  | ({ jobType: "mobile_tyre_fitting" } & MobileTyreFittingDetails)
+  | ({ jobType: "battery_replacement" } & BatteryReplacementDetails)
+  | ({ jobType: "vehicle_recovery" } & VehicleRecoveryDetails);
+
 export interface Booking {
   id: string;
   customerId: string;
@@ -61,6 +104,7 @@ export interface Booking {
   technician: string | null;
   estPrice: number | null;
   notes?: string | null;
+  serviceDetails?: ServiceDetails | null;
 }
 
 export interface JobLabourLine {
