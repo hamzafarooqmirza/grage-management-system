@@ -3,7 +3,13 @@ import { TopBar } from "@/components/layout/TopBar";
 import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { DeleteButton } from "@/components/ui/DeleteButton";
-import { getCustomers, getGarageSettings, getInvoices, getVehicles } from "@/lib/supabase/queries";
+import {
+  getActiveCustomers,
+  getCustomers,
+  getGarageSettings,
+  getInvoices,
+  getVehicles,
+} from "@/lib/supabase/queries";
 import { deleteInvoice } from "@/lib/supabase/mutations";
 import { invoiceTotals } from "@/lib/totals";
 import { formatCurrency, formatDate } from "@/lib/format";
@@ -18,9 +24,10 @@ const statusTone: Record<string, "neutral" | "blue" | "green" | "red" | "purple"
 };
 
 export default async function InvoicesPage() {
-  const [invoices, customers, vehicles, garage] = await Promise.all([
+  const [invoices, customers, activeCustomers, vehicles, garage] = await Promise.all([
     getInvoices(),
     getCustomers(),
+    getActiveCustomers(),
     getVehicles(),
     getGarageSettings(),
   ]);
@@ -37,13 +44,13 @@ export default async function InvoicesPage() {
       <main className="flex-1 space-y-4 overflow-y-auto p-4 sm:p-6">
         <div className="flex justify-end gap-2">
           <CreateInvoiceButton
-            customers={customers}
+            customers={activeCustomers}
             vehicles={vehicles}
             mode="estimate"
             defaultVatRate={garage.defaultVatRate}
           />
           <CreateInvoiceButton
-            customers={customers}
+            customers={activeCustomers}
             vehicles={vehicles}
             defaultVatRate={garage.defaultVatRate}
           />

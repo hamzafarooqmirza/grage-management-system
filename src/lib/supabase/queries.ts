@@ -199,7 +199,25 @@ const INVOICE_SELECT = "*, invoice_line_items(*)";
 
 // ---- Customers ----
 
+// Inclusive of archived customers — this is what every page that builds a
+// customerById lookup map for existing bookings/jobs/invoices/reminders
+// should use, since those records don't stop existing when their customer
+// is archived. Use getActiveCustomers() instead for the customer list and
+// for "create new X" selectors, where an archived customer shouldn't be
+// offered.
 export async function getCustomers(): Promise<Customer[]> {
+  const supabase = await createClient();
+  const garageId = await getCurrentGarageId();
+  const { data, error } = await supabase
+    .from("customers")
+    .select("*")
+    .eq("garage_id", garageId)
+    .order("full_name", { ascending: true });
+  if (error) throw new Error(error.message);
+  return (data ?? []).map(mapCustomer);
+}
+
+export async function getActiveCustomers(): Promise<Customer[]> {
   const supabase = await createClient();
   const garageId = await getCurrentGarageId();
   const { data, error } = await supabase
