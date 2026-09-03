@@ -85,6 +85,7 @@ export type Database = {
       customers: {
         Row: {
           address_line: string
+          archived: boolean
           city: string
           created_at: string
           email: string
@@ -98,6 +99,7 @@ export type Database = {
         }
         Insert: {
           address_line: string
+          archived?: boolean
           city: string
           created_at?: string
           email: string
@@ -111,6 +113,7 @@ export type Database = {
         }
         Update: {
           address_line?: string
+          archived?: boolean
           city?: string
           created_at?: string
           email?: string

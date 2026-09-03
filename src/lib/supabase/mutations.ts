@@ -59,7 +59,16 @@ export async function addCustomer(input: {
   return {};
 }
 
-export async function deleteCustomer(id: string): Promise<MutationResult> {
+export interface CustomerDependencyCounts {
+  vehicles: number;
+  bookings: number;
+  jobs: number;
+  invoices: number;
+}
+
+export async function getCustomerDependencyCounts(
+  id: string
+): Promise<CustomerDependencyCounts> {
   const supabase = await createClient();
   const garageId = await getCurrentGarageId();
 
@@ -86,22 +95,39 @@ export async function deleteCustomer(id: string): Promise<MutationResult> {
       .eq("garage_id", garageId),
   ]);
 
-  const countError = vehicles.error ?? bookings.error ?? jobs.error ?? invoices.error;
-  if (countError) return { error: countError.message };
+  const error = vehicles.error ?? bookings.error ?? jobs.error ?? invoices.error;
+  if (error) throw new Error(error.message);
 
-  if (
-    (vehicles.count ?? 0) > 0 ||
-    (bookings.count ?? 0) > 0 ||
-    (jobs.count ?? 0) > 0 ||
-    (invoices.count ?? 0) > 0
-  ) {
-    const parts = [
-      (vehicles.count ?? 0) > 0 && `${vehicles.count} vehicle${vehicles.count === 1 ? "" : "s"}`,
-      (bookings.count ?? 0) > 0 && `${bookings.count} booking${bookings.count === 1 ? "" : "s"}`,
-      (jobs.count ?? 0) > 0 && `${jobs.count} job${jobs.count === 1 ? "" : "s"}`,
-      (invoices.count ?? 0) > 0 && `${invoices.count} invoice${invoices.count === 1 ? "" : "s"}`,
-    ].filter((p): p is string => Boolean(p));
+  return {
+    vehicles: vehicles.count ?? 0,
+    bookings: bookings.count ?? 0,
+    jobs: jobs.count ?? 0,
+    invoices: invoices.count ?? 0,
+  };
+}
 
+function describeDependencyCounts(counts: CustomerDependencyCounts): string[] {
+  return [
+    counts.vehicles > 0 && `${counts.vehicles} vehicle${counts.vehicles === 1 ? "" : "s"}`,
+    counts.bookings > 0 && `${counts.bookings} booking${counts.bookings === 1 ? "" : "s"}`,
+    counts.jobs > 0 && `${counts.jobs} job${counts.jobs === 1 ? "" : "s"}`,
+    counts.invoices > 0 && `${counts.invoices} invoice${counts.invoices === 1 ? "" : "s"}`,
+  ].filter((p): p is string => Boolean(p));
+}
+
+export async function deleteCustomer(id: string): Promise<MutationResult> {
+  const supabase = await createClient();
+  const garageId = await getCurrentGarageId();
+
+  let counts: CustomerDependencyCounts;
+  try {
+    counts = await getCustomerDependencyCounts(id);
+  } catch (e) {
+    return { error: e instanceof Error ? e.message : "Failed to check related records." };
+  }
+
+  const parts = describeDependencyCounts(counts);
+  if (parts.length > 0) {
     return {
       error: `This customer still has ${parts.join(", ")} on record.`,
     };
@@ -206,6 +232,42 @@ export async function deleteCustomerCascade(id: string): Promise<MutationResult>
   revalidatePath("/jobs");
   revalidatePath("/diary");
   revalidatePath("/invoices");
+  revalidatePath("/");
+  return {};
+}
+
+export async function archiveCustomer(id: string): Promise<MutationResult> {
+  const supabase = await createClient();
+  const garageId = await getCurrentGarageId();
+
+  const { error } = await supabase
+    .from("customers")
+    .update({ archived: true })
+    .eq("id", id)
+    .eq("garage_id", garageId);
+
+  if (error) return { error: error.message };
+
+  revalidatePath("/customers");
+  revalidatePath(`/customers/${id}`);
+  revalidatePath("/");
+  return {};
+}
+
+export async function restoreCustomer(id: string): Promise<MutationResult> {
+  const supabase = await createClient();
+  const garageId = await getCurrentGarageId();
+
+  const { error } = await supabase
+    .from("customers")
+    .update({ archived: false })
+    .eq("id", id)
+    .eq("garage_id", garageId);
+
+  if (error) return { error: error.message };
+
+  revalidatePath("/customers");
+  revalidatePath(`/customers/${id}`);
   revalidatePath("/");
   return {};
 }

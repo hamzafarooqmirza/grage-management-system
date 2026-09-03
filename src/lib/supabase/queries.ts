@@ -43,6 +43,7 @@ function mapCustomer(row: CustomerRow): Customer {
     postCode: row.post_code,
     createdAt: row.created_at,
     notes: row.notes,
+    archived: row.archived,
   };
 }
 
@@ -205,6 +206,20 @@ export async function getCustomers(): Promise<Customer[]> {
     .from("customers")
     .select("*")
     .eq("garage_id", garageId)
+    .eq("archived", false)
+    .order("full_name", { ascending: true });
+  if (error) throw new Error(error.message);
+  return (data ?? []).map(mapCustomer);
+}
+
+export async function getArchivedCustomers(): Promise<Customer[]> {
+  const supabase = await createClient();
+  const garageId = await getCurrentGarageId();
+  const { data, error } = await supabase
+    .from("customers")
+    .select("*")
+    .eq("garage_id", garageId)
+    .eq("archived", true)
     .order("full_name", { ascending: true });
   if (error) throw new Error(error.message);
   return (data ?? []).map(mapCustomer);

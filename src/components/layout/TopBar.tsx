@@ -1,9 +1,10 @@
 "use client";
 
-import { Search, Bell, Menu } from "lucide-react";
+import { Bell, Menu } from "lucide-react";
 import { useNavDrawer } from "./NavDrawerContext";
 import { UserMenu } from "./UserMenu";
 import { GarageSwitcher } from "./GarageSwitcher";
+import { GlobalSearch } from "./GlobalSearch";
 
 export function TopBar({ title, subtitle }: { title: string; subtitle?: string }) {
   const { open } = useNavDrawer();
@@ -29,10 +30,7 @@ export function TopBar({ title, subtitle }: { title: string; subtitle?: string }
         </div>
       </div>
       <div className="flex shrink-0 items-center gap-2 sm:gap-3">
-        <div className="hidden items-center gap-2 rounded-lg border border-slate-200 bg-slate-50 px-3 py-1.5 text-sm text-slate-400 lg:flex">
-          <Search size={15} />
-          <span>Search customers, vehicles, jobs...</span>
-        </div>
+        <GlobalSearch />
         <button className="rounded-lg border border-slate-200 p-2 text-slate-500 hover:border-accent-500/40 hover:bg-accent-50 hover:text-accent-600">
           <Bell size={16} />
         </button>

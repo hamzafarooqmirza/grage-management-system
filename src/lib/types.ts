@@ -46,6 +46,7 @@ export interface Customer {
   postCode: string;
   createdAt: string;
   notes?: string | null;
+  archived: boolean;
 }
 
 export interface Booking {
