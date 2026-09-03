@@ -3,12 +3,14 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "./server";
 import { getCurrentGarageId } from "./garage";
+import type { Json } from "./database.types";
 import type {
   EmployeeRole,
   InvoiceStatus,
   JobPriority,
   JobStatus,
   JobType,
+  ServiceDetails,
 } from "@/lib/types";
 import { JOB_TYPE_LABELS } from "@/lib/job-types";
 
@@ -317,6 +319,7 @@ export async function addBooking(input: {
   technician?: string;
   bay?: string;
   notes?: string;
+  serviceDetails?: ServiceDetails | null;
 }): Promise<MutationResult> {
   const supabase = await createClient();
   const garageId = await getCurrentGarageId();
@@ -334,6 +337,7 @@ export async function addBooking(input: {
       technician,
       bay,
       notes: input.notes || null,
+      service_details: (input.serviceDetails as unknown as Json) ?? null,
     })
     .select("id")
     .single();

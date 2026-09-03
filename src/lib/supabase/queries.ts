@@ -14,6 +14,7 @@ import type {
   JobPartLine,
   Part,
   Reminder,
+  ServiceDetails,
   Vehicle,
 } from "@/lib/types";
 
@@ -89,6 +90,7 @@ function mapBooking(row: BookingRow): Booking {
     technician: row.technician,
     estPrice: row.est_price,
     notes: row.notes,
+    serviceDetails: (row.service_details as ServiceDetails | null) ?? null,
   };
 }
 
