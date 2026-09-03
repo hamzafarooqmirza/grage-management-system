@@ -4,6 +4,7 @@ import { TopBar } from "@/components/layout/TopBar";
 import { Card, CardBody, CardHeader } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { DeleteCustomerButton } from "@/components/customers/DeleteCustomerButton";
+import { RestoreCustomerBanner } from "@/components/customers/RestoreCustomerBanner";
 import {
   getBookingsForCustomer,
   getCustomer,
@@ -51,6 +52,8 @@ export default async function CustomerDetailPage({
         >
           <ArrowLeft size={15} /> Back to customers
         </Link>
+
+        {customer.archived ? <RestoreCustomerBanner customerId={customer.id} /> : null}
 
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
           <Card className="lg:col-span-1">
