@@ -79,11 +79,22 @@ export function BookJobButton({
     setStorageValues((prev) => {
       const next = { ...prev, ...patch };
       const total = storageTotal(next);
-      if (total !== null) {
-        setEstPrice(total.toFixed(2));
-      }
+      setEstPrice(total !== null ? total.toFixed(2) : "");
       return next;
     });
+  }
+
+  function resetForm() {
+    setJobType("");
+    setEstPrice("");
+    setServiceValues({});
+    setStorageValues(EMPTY_STORAGE_VALUES);
+    setError(null);
+  }
+
+  function handleClose() {
+    setOpen(false);
+    resetForm();
   }
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
@@ -119,10 +130,7 @@ export function BookJobButton({
     }
 
     setOpen(false);
-    setJobType("");
-    setEstPrice("");
-    setServiceValues({});
-    setStorageValues(EMPTY_STORAGE_VALUES);
+    resetForm();
     router.refresh();
   }
 
@@ -138,7 +146,7 @@ export function BookJobButton({
 
       <Modal
         open={open}
-        onClose={() => setOpen(false)}
+        onClose={handleClose}
         title="Book a Job"
         subtitle="Schedule a new booking"
         icon={CalendarClock}
@@ -258,7 +266,7 @@ export function BookJobButton({
           <div className="sticky bottom-0 -mx-6 -mb-6 flex justify-end gap-3 border-t border-slate-100 bg-white px-6 py-4">
             <button
               type="button"
-              onClick={() => setOpen(false)}
+              onClick={handleClose}
               className="rounded-lg border border-slate-200 px-4 py-2 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50"
             >
               Cancel
